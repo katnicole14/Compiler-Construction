@@ -1,0 +1,21 @@
+main
+num V_factorial,
+begin
+    V_factorial = F_factorial(5) ;
+    print V_factorial ;
+    halt ;
+end
+
+num F_factorial(V_n, V_dummy1, V_dummy2)
+{
+    num V_result, V_temp1, V_temp2,
+    begin
+        if eq(V_n, 1) then
+            V_result = 1 ;
+        else
+            V_temp1 = sub(V_n, 1) ;
+            V_temp2 = F_factorial(V_temp1, V_dummy1, V_dummy2) ;
+            V_result = mul(V_n, V_temp2) ;
+        halt ;
+    end
+}

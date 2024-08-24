@@ -1,0 +1,7 @@
+main
+num V_result,
+begin
+    V_result = add(5, 10) ;
+    print V_result ;
+    halt ;
+end

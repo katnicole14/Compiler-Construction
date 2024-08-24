@@ -1,0 +1,9 @@
+main
+text V_part1, V_part2, V_result,
+begin
+    V_part1 = "Hello" ;
+    V_part2 = "World" ;
+    V_result = add(V_part1, V_part2) ;
+    print V_result ;
+    halt ;
+end

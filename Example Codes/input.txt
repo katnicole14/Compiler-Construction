@@ -1,0 +1,7 @@
+main
+text V_name,
+begin
+    V_name < input ;
+    print V_name ;
+    halt ;
+end
