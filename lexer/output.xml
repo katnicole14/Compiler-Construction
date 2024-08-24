@@ -1,0 +1,67 @@
+<TOKENSTREAM>
+<TOK>
+  <ID>1</ID>
+  <CLASS>identifier</CLASS>
+  <WORD>main</WORD>
+</TOK>
+<TOK>
+  <ID>2</ID>
+  <CLASS>identifier</CLASS>
+  <WORD>num</WORD>
+</TOK>
+<TOK>
+  <ID>3</ID>
+  <CLASS>identifier</CLASS>
+  <WORD>V_result</WORD>
+</TOK>
+<TOK>
+  <ID>4</ID>
+  <CLASS>unknown</CLASS>
+  <WORD>,</WORD>
+</TOK>
+<TOK>
+  <ID>5</ID>
+  <CLASS>identifier</CLASS>
+  <WORD>begin</WORD>
+</TOK>
+<TOK>
+  <ID>6</ID>
+  <CLASS>identifier</CLASS>
+  <WORD>V_result</WORD>
+</TOK>
+<TOK>
+  <ID>7</ID>
+  <CLASS>unknown</CLASS>
+  <WORD>= add(5, 10) ;</WORD>
+</TOK>
+<TOK>
+  <ID>8</ID>
+  <CLASS>identifier</CLASS>
+  <WORD>print</WORD>
+</TOK>
+<TOK>
+  <ID>9</ID>
+  <CLASS>identifier</CLASS>
+  <WORD>V_result</WORD>
+</TOK>
+<TOK>
+  <ID>10</ID>
+  <CLASS>unknown</CLASS>
+  <WORD>;</WORD>
+</TOK>
+<TOK>
+  <ID>11</ID>
+  <CLASS>identifier</CLASS>
+  <WORD>halt</WORD>
+</TOK>
+<TOK>
+  <ID>12</ID>
+  <CLASS>unknown</CLASS>
+  <WORD>;</WORD>
+</TOK>
+<TOK>
+  <ID>13</ID>
+  <CLASS>identifier</CLASS>
+  <WORD>end</WORD>
+</TOK>
+</TOKENSTREAM>
