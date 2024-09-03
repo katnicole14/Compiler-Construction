@@ -39,7 +39,7 @@ public class Lexer {
         };
     
         String[] tokenClasses = {
-            "keyword", "variable", "function", "number", "number", "text", "keyword", "whitespace", "unknown"
+            "reserved_keyword", "V", "F", "N", "N", "T", "reserved_keyword", "whitespace", "unknown"
         };
     
         int tokenId = 1;
