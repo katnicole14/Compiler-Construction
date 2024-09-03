@@ -26,18 +26,22 @@ public class Lexer {
      * Tokenizes the input code based on predefined patterns.
      */
     public void tokenize() throws Exception {
-        String[] patterns = {
-            "\\b(if|else|while)\\b",       // keyword
-            "\\b[a-zA-Z_]\\w*\\b",         // identifier
-            "\\b\\d+(\\.\\d+)?\\b",        // number
-            "[+\\-*/]",                    // operator
-            "\\s+",                        // whitespace
-            ".+"                           // unknown (catch-all)
-        };
-        String[] tokenClasses = {
-            "keyword", "identifier", "number", "operator", "whitespace", "unknown"
-        };
 
+        String[] patterns = {
+            "\\b(main|begin|end|skip|halt|print|input|if|then|else|not|sqrt|or|and|eq|grt|add|sub|mul|div|<|>|=|\\(|\\)|\\{|\\}|;|,)\\b", // Keywords and symbols
+            "\"[A-Z][a-z]{0,7}\"", // Text literals
+            "\\bV_[a-z][a-z0-9]*\\b", // Variable names
+            "\\bF_[a-z][a-z0-9]*\\b", // Function names
+            "-?\\b0(\\.\\d+)?\\b", // Numbers starting with 0 or 0.x
+            "-?\\b[1-9]\\d*(\\.\\d+)?\\b", // Positive and negative integers/real numbers
+            "\\s+", // Whitespace
+            ".+" // Unknown (catch-all)
+        };
+    
+        String[] tokenClasses = {
+            "keyword", "text", "variable", "function", "number", "number", "whitespace", "unknown"
+        };
+    
         int tokenId = 1;
         while (currentPos < inputCode.length()) {
             boolean matchFound = false;
@@ -54,12 +58,15 @@ public class Lexer {
                     break;
                 }
             }
-
+    
             if (!matchFound) {
                 throw new Exception("Lexical error at position " + currentPos);
             }
         }
     }
+    
+    
+    
 
     /**
      * Outputs the token list to an XML file.
