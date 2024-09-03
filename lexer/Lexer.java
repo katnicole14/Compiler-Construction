@@ -27,7 +27,7 @@ public class Lexer {
      */
     public void tokenize() throws Exception {
         String[] patterns = {
-            "\\b(main|begin|end|skip|halt|print|input|num|if|then|else|not|sqrt|or|and|eq|grt|add|sub|mul|div)\\b", // Keywords
+            "\\b(main|begin|end|skip|halt|print|input|num|if|then|void|else|not|sqrt|or|and|eq|grt|add|sub|mul|div)\\b", // Keywords
             "\\bV_[a-z][a-z0-9]*\\b", // Variable names
             "\\bF_[a-z][a-z0-9]*\\b", // Function names
             "-?\\b0(\\.\\d+)?\\b", // Numbers starting with 0 or 0.x
