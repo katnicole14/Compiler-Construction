@@ -26,20 +26,20 @@ public class Lexer {
      * Tokenizes the input code based on predefined patterns.
      */
     public void tokenize() throws Exception {
-
         String[] patterns = {
-            "\\b(main|begin|end|skip|halt|print|input|if|then|else|not|sqrt|or|and|eq|grt|add|sub|mul|div|<|>|=|\\(|\\)|\\{|\\}|;|,)\\b", // Keywords and symbols
-            "\"[A-Z][a-z]{0,7}\"", // Text literals
+            "\\b(main|begin|end|skip|halt|print|input|num|if|then|else|not|sqrt|or|and|eq|grt|add|sub|mul|div)\\b", // Keywords
             "\\bV_[a-z][a-z0-9]*\\b", // Variable names
             "\\bF_[a-z][a-z0-9]*\\b", // Function names
             "-?\\b0(\\.\\d+)?\\b", // Numbers starting with 0 or 0.x
             "-?\\b[1-9]\\d*(\\.\\d+)?\\b", // Positive and negative integers/real numbers
+            "\"[^\"]*\"", // Text literals
+            "[=<>(){};,]", // Symbols treated as keywords
             "\\s+", // Whitespace
             ".+" // Unknown (catch-all)
         };
     
         String[] tokenClasses = {
-            "keyword", "text", "variable", "function", "number", "number", "whitespace", "unknown"
+            "keyword", "variable", "function", "number", "number", "string", "keyword", "whitespace", "unknown"
         };
     
         int tokenId = 1;
@@ -50,7 +50,7 @@ public class Lexer {
                 Matcher matcher = pattern.matcher(inputCode.substring(currentPos));
                 if (matcher.lookingAt()) {
                     String tokenValue = matcher.group(0);
-                    if (!tokenClasses[i].equals("whitespace")) {
+                    if (!tokenClasses[i].equals("whitespace")) {  // Ignore whitespace
                         tokens.add(new Token(tokenId++, tokenClasses[i], tokenValue));
                     }
                     currentPos += tokenValue.length();
@@ -64,8 +64,6 @@ public class Lexer {
             }
         }
     }
-    
-    
     
 
     /**
