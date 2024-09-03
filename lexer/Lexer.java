@@ -32,7 +32,7 @@ public class Lexer {
             "\\bF_[a-z][a-z0-9]*\\b", // Function names
             "-?\\b0(\\.\\d+)?\\b", // Numbers starting with 0 or 0.x
             "-?\\b[1-9]\\d*(\\.\\d+)?\\b", // Positive and negative integers/real numbers
-            "\\b[A-Z][a-z]{0,7}\\b", // String literals with 8 or fewer characters
+            "\\b[a-zA-Z]{1,8}\\b", // String literals with 8 or fewer characters
             "[=<>(){};,]", // Symbols treated as keywords
             "\\s+", // Whitespace
             ".+" // Unknown (catch-all)
