@@ -32,14 +32,14 @@ public class Lexer {
             "\\bF_[a-z][a-z0-9]*\\b", // Function names
             "-?\\b0(\\.\\d+)?\\b", // Numbers starting with 0 or 0.x
             "-?\\b[1-9]\\d*(\\.\\d+)?\\b", // Positive and negative integers/real numbers
-            "\"[^\"]*\"", // Text literals
+            "\\b[A-Z][a-z]{0,7}\\b", // String literals with 8 or fewer characters
             "[=<>(){};,]", // Symbols treated as keywords
             "\\s+", // Whitespace
             ".+" // Unknown (catch-all)
         };
     
         String[] tokenClasses = {
-            "keyword", "variable", "function", "number", "number", "string", "keyword", "whitespace", "unknown"
+            "keyword", "variable", "function", "number", "number", "text", "keyword", "whitespace", "unknown"
         };
     
         int tokenId = 1;
@@ -50,11 +50,18 @@ public class Lexer {
                 Matcher matcher = pattern.matcher(inputCode.substring(currentPos));
                 if (matcher.lookingAt()) {
                     String tokenValue = matcher.group(0);
-                    if (!tokenClasses[i].equals("whitespace")) {  // Ignore whitespace
+    
+                    // Check if it's a string literal and longer than 8 characters
+                    if (i == 5 && tokenValue.length() > 8) {
+                        tokens.add(new Token(tokenId++, "unknown", tokenValue));
+                    } else if (!tokenClasses[i].equals("whitespace")) {  // Ignore whitespace
                         tokens.add(new Token(tokenId++, tokenClasses[i], tokenValue));
                     }
+    
                     currentPos += tokenValue.length();
                     matchFound = true;
+    
+                    // Break the loop to process the next token
                     break;
                 }
             }
@@ -64,6 +71,7 @@ public class Lexer {
             }
         }
     }
+    
     
 
     /**
