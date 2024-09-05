@@ -11,13 +11,13 @@ public class Main {
 
     public static void main(String[] args) {
         // Ensure that the user provides the required arguments
-        if (args.length != 2) {
-            System.err.println("Usage: java Main <input_file> <output_file>");
-            System.exit(1);
-        }
+        // if (args.length != 2) {
+        //     System.err.println("Usage: java Main <input_file> <output_file>");
+        //     System.exit(1);
+        // }
 
-        String inputFilePath = args[0];
-        String outputFilePath = args[1];
+        String inputFilePath = "lexer/input.txt";
+        String outputFilePath = "lexer/output.xml";
 
         // Create a File object for the input file
         File inputFile = new File(inputFilePath);

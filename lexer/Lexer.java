@@ -39,20 +39,45 @@ public class Lexer {
         };
     
         String[] tokenClasses = {
-            "reserved_keyword", "V", "F", "N", "N", "T", "reserved_keyword", "whitespace", "unknown"
+            "reserved_keyword", "V", "F", "N", "N", "T", "Symbols", "whitespace", "unknown"
         };
     
         int tokenId = 1;
         while (currentPos < inputCode.length()) {
             boolean matchFound = false;
-            for (int i = 0; i < patterns.length; i++) {
-                Pattern pattern = Pattern.compile(patterns[i]);
-                Matcher matcher = pattern.matcher(inputCode.substring(currentPos));
-                if (matcher.lookingAt()) {
-                    String tokenValue = matcher.group(0);
-    
+            for (int i = 0; i < patterns.length; i++) {     // Iterate through the patterns
+                Pattern pattern = Pattern.compile(patterns[i]);     // Compile the pattern
+                Matcher matcher = pattern.matcher(inputCode.substring(currentPos));     // Match the pattern against the input code
+                if (matcher.lookingAt()) {      // Check if the pattern matches the beginning of the input code
+                    String tokenValue = matcher.group(0);       // Get the matched token value
+                    // check for specific symbols and create custom keywords
+                    if(tokenClasses[i].equals("Symbols")){
+                        switch(tokenValue.toString()){
+                            case "{":
+                                tokens.add(new Token(tokenId++, "lbrace", tokenValue));
+                                break;
+                            case "}":
+                                tokens.add(new Token(tokenId++, "rbrace", tokenValue));
+                                break;
+                            case "(":
+                                tokens.add(new Token(tokenId++, "lparen", tokenValue));
+                                break;
+                            case ")":
+                                tokens.add(new Token(tokenId++, "rparen", tokenValue));
+                                break;
+                            case ";":
+                                tokens.add(new Token(tokenId++, "semicolon", tokenValue));
+                                break;
+                            case ",":
+                                tokens.add(new Token(tokenId++, "comma", tokenValue));
+                                break;
+                            case "=":
+                                tokens.add(new Token(tokenId++, "equal", tokenValue));
+                                break;
+                    }
+                }
                     // Check if it's a string literal and longer than 8 characters
-                    if (i == 5 && tokenValue.length() > 8) {
+                    else if (i == 5 && tokenValue.length() > 8) {
                         tokens.add(new Token(tokenId++, "unknown", tokenValue));
                     } else if (!tokenClasses[i].equals("whitespace")) {  // Ignore whitespace
                         tokens.add(new Token(tokenId++, tokenClasses[i], tokenValue));
@@ -71,6 +96,7 @@ public class Lexer {
             }
         }
     }
+
     
     
 
