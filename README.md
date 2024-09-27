@@ -13,7 +13,8 @@ This project consists of a **Lexer** and a **Parser** as part of a compiler cons
 
 ## How to Use
 
-### Run the Lexer
+### Run the Lexer(Modify makefile under lexer to take in input.txt and output.txt(name of the output file)) 
+
 Navigate to the root directory of the project and run the following command:
 ```bash
 make run-lexer
