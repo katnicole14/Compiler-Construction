@@ -1,4 +1,3 @@
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,7 +11,7 @@ import java.nio.file.Paths;
 public class Main {
 
     public static void main(String[] args) {
-        // Ensure that the user provides the required arguments
+        //Ensure that the user provides the required arguments
         // if (args.length != 2) {
         //     System.err.println("Usage: java Main <input_file> <output_file>");
         //     System.exit(1);
