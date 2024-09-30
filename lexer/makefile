@@ -2,7 +2,6 @@ make:
 		javac *.java
 
 run:
-		java Main ../ExampleCodes/Arithmetic_Operations.txt output.xml
-
+		java Main
 clean:
 		rm *.class

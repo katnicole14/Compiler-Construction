@@ -1,7 +1,9 @@
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+
 
 /**
  * The Main class serves as the entry point for the Lexer application.
