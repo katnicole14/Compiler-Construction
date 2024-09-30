@@ -5,7 +5,7 @@ make:
 	@javac lexer/*.java parser/*.java
 
 run-parser:
-	@java -cp parser parser.Main  # Run the parser with its package
+	@java -cp . parser.Main  # Ensure this runs the parser with its package
 
 run-lexer:
 	@java -cp lexer Main  # Specify classpath to the lexer directory
