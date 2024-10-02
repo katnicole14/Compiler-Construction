@@ -1,0 +1,8 @@
+main
+num V_x, num V_y,
+begin
+    V_x = 10;
+    V_y = 20;
+    print V_y;
+    halt;
+end
