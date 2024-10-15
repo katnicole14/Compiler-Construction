@@ -1,19 +1,20 @@
-.PHONY: clean run-lexer run-parser run-lexer-parser
+.PHONY: clean run-lexer run-parser run-lexer-parser run-symbol-table
 
-# Compilation command for lexer and parser
 make:
-	@javac lexer/*.java parser/*.java
+	@javac lexer/*.java parser/*.java symbol_table/*.java
 
 run-parser:
-	@java -cp . parser.Main  # Ensure this runs the parser with its package
+	@java -cp . parser.Main
 
 run-lexer:
-	@java -cp lexer Main  # Specify classpath to the lexer directory
+	@java -cp lexer Main
 
 run-lexer-parser:
-	@make run-lexer  # Run the lexer first
-	@make run-parser  # Then run the parser
+	@make run-lexer
+	@make run-parser
+
+run-symbol-table:
+	@java -cp . symbol_table.SymbolTableMain
 
 clean:
-	@rm -f lexer/*.class
-	@rm -f parser/*.class
+	@rm -f lexer/*.class parser/*.class symbol_table/*.class
