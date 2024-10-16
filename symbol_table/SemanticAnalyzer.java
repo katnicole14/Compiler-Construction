@@ -39,10 +39,6 @@ public class SemanticAnalyzer {
     // Recursive function to traverse the tree and enforce semantic rules
     private void traverseNode(Node node) {
         String nodeName = node.getNodeName().trim();
-        String nodeText = node.getTextContent().trim();
-        
-       
-     
 
         switch (nodeName) {
             case "ROOT":
@@ -63,8 +59,7 @@ public class SemanticAnalyzer {
     private void handleRootNode(Node node) {
         // Push the root scope (main program scope) onto the stack
         scopeStack.push("MAIN");
-        String startSymbol = getTextContent(node, "SYMB");
-
+    
         // Get the CHILDREN IDs from the ROOT node
         NodeList childIDs = ((Element) node).getElementsByTagName("CHILDREN").item(0).getChildNodes();
         
@@ -113,19 +108,10 @@ public class SemanticAnalyzer {
    
     // Handle IN node (function or inner scope)
     private void handleInNode(Node node) {
-       
 
-    String nodeName = node.getNodeName();
-    
-    String symbol= getTextContent(node, "SYMB");
-      System.out.println(symbol);
-
-
-      String parent = getTextContent(node, "PARENT");
       String unid = getTextContent(node, "UNID");
       String nonTerminal = getTextContent(node, "SYMB");
   
-
         // Check if the non-terminal represents a function
         if (isFunction(nonTerminal)) {
             // Function scope handling
@@ -193,16 +179,16 @@ public class SemanticAnalyzer {
        String parent = getTextContent(node, "PARENT");
        String unid = getTextContent(node, "UNID");
    
-   
-       System.out.println(terminal);
-       System.out.println(terminal + " "+ "parent :" + parent);
+
 
        // Handle terminal nodes (tokens from the lexer)
-       if (isToken(terminal)) {
-           symbolTable.put(unid, new Symbol(terminal, "token", parent)); // Store token in the symbol table
-       }
+       if (terminal.equals("main")) {
+        symbolTable.put(unid, new Symbol(terminal, "token", parent)); // Store 'main' in the symbol table
+    } else if (isToken(terminal) && !isKeyword(terminal)) {
+        symbolTable.put(unid, new Symbol(terminal, "token", parent)); // Store other tokens in the symbol table
+    }
     
-        // Iterate through each LEAF element
+        
     
     }
     
@@ -223,7 +209,7 @@ public class SemanticAnalyzer {
 
     // Helper method to check if terminal is a keyword
     private boolean isKeyword(String terminal) {
-        return terminal.matches("\\b(main|begin|end|skip|halt|print|input|num|if|then|void|else|not|sqrt|or|and|eq|grt|add|sub|mul|div)\\b");
+        return terminal.matches("\\b(begin|end|skip|halt|print|input|num|if|then|void|else|not|sqrt|or|and|eq|grt|add|sub|mul|div)\\b");
     }
 
     // Helper method to check if a string is a valid token
@@ -267,4 +253,7 @@ public class SemanticAnalyzer {
             }
         }
     }
+
+
+  
 }
