@@ -158,7 +158,7 @@ public class SemanticAnalyzer {
                     if (id.equals(childID)) {
                         // Found in INNERNODES, process as an inner node
                         traverseNode(innerNode); // Recurse through this inner node
-                        return; // Exit the loop after finding and processing the node
+                        // Exit the loop after finding and processing the node
                     }
                 }
                 
@@ -170,7 +170,7 @@ public class SemanticAnalyzer {
                     if (id.equals(childID)) {
                         // Found in LEAFNODES, process as a leaf node
                         traverseNode(leafNode); // Pass the leaf node for leaf-specific processing
-                        return; // Exit the loop after finding and processing the node
+                        // Exit the loop after finding and processing the node
                     }
                 }
                 
@@ -186,33 +186,26 @@ public class SemanticAnalyzer {
     // Handle LEAFNODES (variables or terminal symbols)
     private void handleLeafNodes(Node node) {
        
-        // Get all LEAF elements within the LEAFNODES element
-        NodeList leafNodes = ((Element) node).getElementsByTagName("LEAF");
+        String terminal= getTextContent(node, "TERMINAL");
+
+    
+
+       String parent = getTextContent(node, "PARENT");
+       String unid = getTextContent(node, "UNID");
+   
+   
+       System.out.println(terminal);
+       System.out.println(terminal + " "+ "parent :" + parent);
+
+       // Handle terminal nodes (tokens from the lexer)
+       if (isToken(terminal)) {
+           symbolTable.put(unid, new Symbol(terminal, "token", parent)); // Store token in the symbol table
+       }
     
         // Iterate through each LEAF element
-        for (int i = 0; i < leafNodes.getLength(); i++) {
-            Node leafNode = leafNodes.item(i);
     
-            // Ensure it's an element node
-            if (leafNode.getNodeType() == Node.ELEMENT_NODE) {
-                // Handle the LEAF node
-                handleLeafNode(leafNode);
-            }
-        }
     }
     
-    private void handleLeafNode(Node node) {
-        // Extract parent, UNID, and terminal symbol
-        String parent = getTextContent(node, "PARENT");
-        String unid = getTextContent(node, "UNID");
-        String terminal = getTextContent(node, "TERMINAL");
-    
-        // Handle terminal nodes (tokens from the lexer)
-        if (isToken(terminal)) {
-            symbolTable.put(unid, new Symbol(terminal, "token", parent)); // Store token in the symbol table
-        }
-    }
-
     // Helper method to get text content from an element by tag name
     private String getTextContent(Node node, String tagName) {
         return ((Element) node).getElementsByTagName(tagName).item(0).getTextContent();
