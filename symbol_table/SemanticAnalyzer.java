@@ -38,9 +38,11 @@ public class SemanticAnalyzer {
 
     // Recursive function to traverse the tree and enforce semantic rules
     private void traverseNode(Node node) {
-        String nodeName = node.getNodeName();
+        String nodeName = node.getNodeName().trim();
         String nodeText = node.getTextContent().trim();
-        //System.out.println(nodeName);
+        
+       
+     
 
         switch (nodeName) {
             case "ROOT":
@@ -48,7 +50,7 @@ public class SemanticAnalyzer {
                 break;
 
             case "IN":
-                handleInnerNodes(node);
+                handleInNode(node);
                 break;
 
             case "LEAF":
@@ -68,23 +70,39 @@ public class SemanticAnalyzer {
         
         // Get the INNERNODES element (this will hold all <IN> elements)
         NodeList innerNodes = ((Element) node.getOwnerDocument().getElementsByTagName("INNERNODES").item(0)).getElementsByTagName("IN");
+        NodeList leafNodes = ((Element) node.getOwnerDocument().getElementsByTagName("LEAFNODES").item(0)).getElementsByTagName("LEAF");
         
         // Loop through all CHILDREN IDs
         for (int i = 0; i < childIDs.getLength(); i++) {
             if (childIDs.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                String childID = childIDs.item(i).getTextContent().trim();
-    
+                String childID = childIDs.item(i).getTextContent().trim();  // the children of the root
+            
                 // Find the corresponding <IN> node with the matching <UNID> as the childID
                 for (int j = 0; j < innerNodes.getLength(); j++) {
                     Element innerNode = (Element) innerNodes.item(j);
                     String unid = getTextContent(innerNode, "UNID");
-    
+                    
+                   
                     if (unid.equals(childID)) {
-                        // Process the matching <IN> node (this is the corresponding child node)
+                       
+                        // Found in INNERNODES, process as an inner node
                         traverseNode(innerNode); // Recurse through this inner node
-                        break;
+                        
                     }
                 }
+                
+                // If not found in INNERNODES, check in LEAFNODES
+                for (int j = 0; j < leafNodes.getLength(); j++) {
+                    Element leafNode = (Element) leafNodes.item(j);
+                    String unid = getTextContent(leafNode, "UNID");
+                
+                    if (unid.equals(childID)) {
+                        // Found in LEAFNODES, process as a leaf node
+                        traverseNode(leafNode); // Pass the leaf node for leaf-specific processing
+                         // Exit the loop after finding and processing the node
+                    }
+                }
+                
             }
         }
     
@@ -92,34 +110,22 @@ public class SemanticAnalyzer {
         scopeStack.pop();
     }
 
-    // Handle INNERNODES (function or inner scopes)
-    private void handleInnerNodes(Node node) {
    
-     String nodeName = node.getNodeName();
-
-    // System.out.println( nodeName);
-        // Get all IN elements within the INNERNODES element
-        NodeList innerNodes = ((Element) node).getElementsByTagName("IN");
-    
-        // Iterate through each IN element
-        for (int i = 0; i < innerNodes.getLength(); i++) {
-            Node innerNode = innerNodes.item(i);
-    
-            // Ensure it's an element node
-            if (innerNode.getNodeType() == Node.ELEMENT_NODE) {
-                // Handle the IN node
-                handleInNode(innerNode);
-            }
-        }
-    }
-    
     // Handle IN node (function or inner scope)
     private void handleInNode(Node node) {
-        // Extract parent, UNID, and non-terminal symbol
-        String parent = getTextContent(node, "PARENT");
-        String unid = getTextContent(node, "UNID");
-        String nonTerminal = getTextContent(node, "SYMB");
+       
+
+    String nodeName = node.getNodeName();
     
+    String symbol= getTextContent(node, "SYMB");
+      System.out.println(symbol);
+
+
+      String parent = getTextContent(node, "PARENT");
+      String unid = getTextContent(node, "UNID");
+      String nonTerminal = getTextContent(node, "SYMB");
+  
+
         // Check if the non-terminal represents a function
         if (isFunction(nonTerminal)) {
             // Function scope handling
@@ -131,13 +137,43 @@ public class SemanticAnalyzer {
         }
     
         // Handle child nodes under this IN node
-        NodeList children = ((Element) node).getElementsByTagName("CHILDREN").item(0).getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node childNode = children.item(i);
+        // Get the CHILDREN IDs from the ROOT node
+        NodeList childIDs = ((Element) node).getElementsByTagName("CHILDREN").item(0).getChildNodes();
+        
+        // Get the INNERNODES element (this will hold all <IN> elements)
+        NodeList innerNodes = ((Element) node.getOwnerDocument().getElementsByTagName("INNERNODES").item(0)).getElementsByTagName("IN");
+        NodeList leafNodes = ((Element) node.getOwnerDocument().getElementsByTagName("LEAFNODES").item(0)).getElementsByTagName("LEAF");
+        
+        // Loop through all CHILDREN IDs
+        for (int i = 0; i < childIDs.getLength(); i++) {
+            if (childIDs.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                String childID = childIDs.item(i).getTextContent().trim();  // the children of the root
+                
+                // Find the corresponding <IN> node with the matching <UNID> as the childID
+                for (int j = 0; j < innerNodes.getLength(); j++) {
+                    Element innerNode = (Element) innerNodes.item(j);
+                    String id = getTextContent(innerNode, "UNID");
+                    
     
-            // Only process ID nodes (the child UNID references)
-            if (childNode.getNodeType() == Node.ELEMENT_NODE && "ID".equals(childNode.getNodeName())) {
-                String childUnid = childNode.getTextContent();
+                    if (id.equals(childID)) {
+                        // Found in INNERNODES, process as an inner node
+                        traverseNode(innerNode); // Recurse through this inner node
+                        return; // Exit the loop after finding and processing the node
+                    }
+                }
+                
+                // If not found in INNERNODES, check in LEAFNODES
+                for (int j = 0; j < leafNodes.getLength(); j++) {
+                    Element leafNode = (Element) leafNodes.item(j);
+                    String id = getTextContent(leafNode, "UNID");
+                
+                    if (id.equals(childID)) {
+                        // Found in LEAFNODES, process as a leaf node
+                        traverseNode(leafNode); // Pass the leaf node for leaf-specific processing
+                        return; // Exit the loop after finding and processing the node
+                    }
+                }
+                
             }
         }
     
@@ -149,7 +185,7 @@ public class SemanticAnalyzer {
 
     // Handle LEAFNODES (variables or terminal symbols)
     private void handleLeafNodes(Node node) {
-        System.out.println( "here in the leaf node");
+       
         // Get all LEAF elements within the LEAFNODES element
         NodeList leafNodes = ((Element) node).getElementsByTagName("LEAF");
     
