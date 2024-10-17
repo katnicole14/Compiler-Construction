@@ -1,6 +1,7 @@
 package symbol_table;
 
 import org.w3c.dom.*;
+
 import javax.xml.parsers.*;
 import java.io.File;
 import java.util.*;
@@ -10,9 +11,11 @@ public class SemanticAnalyzer {
     private Map<String, Symbol> symbolTable = new HashMap<>();
     // Stack to manage scopes
     private Stack<String> scopeStack = new Stack<>();
-
     // List to store semantic errors
     private List<String> errors = new ArrayList<>();
+    // Counter for generating unique names
+    private int uniqueCounterVariable = 0;
+    private int uniqueCounterFunction = 0;
 
     // Method to analyze the syntax tree
     public void analyze(File xmlFile) {
@@ -59,139 +62,84 @@ public class SemanticAnalyzer {
     private void handleRootNode(Node node) {
         // Push the root scope (main program scope) onto the stack
         scopeStack.push("MAIN");
-    
-        // Get the CHILDREN IDs from the ROOT node
-        NodeList childIDs = ((Element) node).getElementsByTagName("CHILDREN").item(0).getChildNodes();
-        
-        // Get the INNERNODES element (this will hold all <IN> elements)
-        NodeList innerNodes = ((Element) node.getOwnerDocument().getElementsByTagName("INNERNODES").item(0)).getElementsByTagName("IN");
-        NodeList leafNodes = ((Element) node.getOwnerDocument().getElementsByTagName("LEAFNODES").item(0)).getElementsByTagName("LEAF");
-        
-        // Loop through all CHILDREN IDs
-        for (int i = 0; i < childIDs.getLength(); i++) {
-            if (childIDs.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                String childID = childIDs.item(i).getTextContent().trim();  // the children of the root
-            
-                // Find the corresponding <IN> node with the matching <UNID> as the childID
-                for (int j = 0; j < innerNodes.getLength(); j++) {
-                    Element innerNode = (Element) innerNodes.item(j);
-                    String unid = getTextContent(innerNode, "UNID");
-                    
-                   
-                    if (unid.equals(childID)) {
-                       
-                        // Found in INNERNODES, process as an inner node
-                        traverseNode(innerNode); // Recurse through this inner node
-                        
-                    }
-                }
-                
-                // If not found in INNERNODES, check in LEAFNODES
-                for (int j = 0; j < leafNodes.getLength(); j++) {
-                    Element leafNode = (Element) leafNodes.item(j);
-                    String unid = getTextContent(leafNode, "UNID");
-                
-                    if (unid.equals(childID)) {
-                        // Found in LEAFNODES, process as a leaf node
-                        traverseNode(leafNode); // Pass the leaf node for leaf-specific processing
-                         // Exit the loop after finding and processing the node
-                    }
-                }
-                
-            }
-        }
-    
+        processChildren(node);
         // Pop the root scope after traversal
         scopeStack.pop();
     }
 
-   
     // Handle IN node (function or inner scope)
     private void handleInNode(Node node) {
+        // String unid = getTextContent(node, "UNID");
+        // String nonTerminal = getTextContent(node, "SYMB");
+            processChildren(node);
+        
+    }
 
-      String unid = getTextContent(node, "UNID");
-      String nonTerminal = getTextContent(node, "SYMB");
-  
-        // Check if the non-terminal represents a function
-        if (isFunction(nonTerminal)) {
+    // Handle LEAF nodes (variables or terminal symbols)
+    private void handleLeafNodes(Node node) {
+        String terminal = getTextContent(node, "TERMINAL");
+        String parent = getTextContent(node, "PARENT");
+        String unid = getTextContent(node, "UNID");
+    
+        // Handle terminal nodes (tokens from the lexer)
+        if (isFunction(terminal)) {
             // Function scope handling
-            if (scopeStack.contains(nonTerminal)) {
+            if (scopeStack.contains(terminal)) {
                 throwError("Function name conflict in scope", unid);
             }
-            scopeStack.push(nonTerminal);
-            symbolTable.put(unid, new Symbol(nonTerminal, "function", scopeStack.peek()));
+            String uniqueName = generateUniqueName(terminal);
+            scopeStack.push(uniqueName);
+            symbolTable.put(unid, new Symbol(uniqueName, "function", scopeStack.peek(), terminal)); // Store function in the symbol table
+        } else if (terminal.equals("main")) {
+            symbolTable.put(unid, new Symbol(terminal, "main", parent, terminal)); // Store 'main' in the symbol table
+        } else if (isToken(terminal) && !isKeyword(terminal)) {
+            String uniqueName = generateUniqueName(terminal);
+            symbolTable.put(unid, new Symbol(uniqueName, "variable", parent, terminal)); // Store other tokens in the symbol table
         }
+    }
     
-        // Handle child nodes under this IN node
-        // Get the CHILDREN IDs from the ROOT node
+    // Helper method to process child nodes
+    private void processChildren(Node node) {
         NodeList childIDs = ((Element) node).getElementsByTagName("CHILDREN").item(0).getChildNodes();
-        
-        // Get the INNERNODES element (this will hold all <IN> elements)
         NodeList innerNodes = ((Element) node.getOwnerDocument().getElementsByTagName("INNERNODES").item(0)).getElementsByTagName("IN");
         NodeList leafNodes = ((Element) node.getOwnerDocument().getElementsByTagName("LEAFNODES").item(0)).getElementsByTagName("LEAF");
-        
-        // Loop through all CHILDREN IDs
+
         for (int i = 0; i < childIDs.getLength(); i++) {
             if (childIDs.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                String childID = childIDs.item(i).getTextContent().trim();  // the children of the root
-                
-                // Find the corresponding <IN> node with the matching <UNID> as the childID
+                String childID = childIDs.item(i).getTextContent().trim();
+
                 for (int j = 0; j < innerNodes.getLength(); j++) {
                     Element innerNode = (Element) innerNodes.item(j);
                     String id = getTextContent(innerNode, "UNID");
-                    
-    
                     if (id.equals(childID)) {
-                        // Found in INNERNODES, process as an inner node
-                        traverseNode(innerNode); // Recurse through this inner node
-                        // Exit the loop after finding and processing the node
+                        traverseNode(innerNode);
+                        break;
                     }
                 }
-                
-                // If not found in INNERNODES, check in LEAFNODES
+
                 for (int j = 0; j < leafNodes.getLength(); j++) {
                     Element leafNode = (Element) leafNodes.item(j);
                     String id = getTextContent(leafNode, "UNID");
-                
                     if (id.equals(childID)) {
-                        // Found in LEAFNODES, process as a leaf node
-                        traverseNode(leafNode); // Pass the leaf node for leaf-specific processing
-                        // Exit the loop after finding and processing the node
+                        traverseNode(leafNode);
+                        break;
                     }
                 }
-                
             }
         }
-    
-        // After processing the IN node, pop the function scope if applicable
-        if (isFunction(nonTerminal)) {
-            scopeStack.pop();
-        }
     }
 
-    // Handle LEAFNODES (variables or terminal symbols)
-    private void handleLeafNodes(Node node) {
+    // Helper method to generate unique names
+    private String generateUniqueName(String baseName) {
        
-        String terminal= getTextContent(node, "TERMINAL");
+        if (isFunction(baseName)){
+            return "f_" + (uniqueCounterFunction++);
+        }
+        else return "v_" + (uniqueCounterVariable++);
 
-    
-
-       String parent = getTextContent(node, "PARENT");
-       String unid = getTextContent(node, "UNID");
-   
-
-
-       // Handle terminal nodes (tokens from the lexer)
-       if (terminal.equals("main")) {
-        symbolTable.put(unid, new Symbol(terminal, "token", parent)); // Store 'main' in the symbol table
-    } else if (isToken(terminal) && !isKeyword(terminal)) {
-        symbolTable.put(unid, new Symbol(terminal, "token", parent)); // Store other tokens in the symbol table
+      
     }
-    
-        
-    
-    }
-    
+
     // Helper method to get text content from an element by tag name
     private String getTextContent(Node node, String tagName) {
         return ((Element) node).getElementsByTagName(tagName).item(0).getTextContent();
@@ -209,7 +157,8 @@ public class SemanticAnalyzer {
 
     // Helper method to check if terminal is a keyword
     private boolean isKeyword(String terminal) {
-        return terminal.matches("\\b(begin|end|skip|halt|print|input|num|if|then|void|else|not|sqrt|or|and|eq|grt|add|sub|mul|div)\\b");
+        return terminal.matches(
+                "\\b(begin|end|skip|halt|print|input|num|if|then|void|else|not|sqrt|or|and|eq|grt|add|sub|mul|div)\\b");
     }
 
     // Helper method to check if a string is a valid token
@@ -217,28 +166,27 @@ public class SemanticAnalyzer {
         return isKeyword(terminal) || isVariable(terminal);
     }
 
-    // Method to throw a semantic error
+    // Helper method to throw an error
     private void throwError(String message, String unid) {
-        errors.add("Error at node UNID " + unid + ": " + message);
+        errors.add("Error at " + unid + ": " + message);
     }
 
-    // Method to print the symbol table
-    public void printSymbolTable() {
+    // Method to print the symbol table in a table format
+    private void printSymbolTable() {
         System.out.println("Symbol Table:");
-        
-        // Print the header
-        System.out.printf("%-20s %-20s %-15s %-10s%n", "ID", "Symbol", "Type", "Scope");
-        System.out.println("--------------------------------------------------------------");
-        
-        // Check if the symbol table is empty
-        if (symbolTable.isEmpty()) {
-            System.out.println("No symbols found.");
-        } else {
-            // Print each symbol in the table
-            for (Map.Entry<String, Symbol> entry : symbolTable.entrySet()) {
-                Symbol symbol = entry.getValue();
-                System.out.printf("%-20s %-20s %-15s %-10s%n", entry.getKey(), symbol.name, symbol.type, symbol.scope);
-            }
+        // Print the table headers with appropriate spacing
+        System.out.printf("%-10s %-20s %-15s %-10s %-15s%n", "ID", "Symbol", "Type", "Scope", "Unique Name");
+        System.out.println("--------------------------------------------------------------------------");
+
+        // Loop through the symbol table and print each entry in a formatted manner
+        for (Map.Entry<String, Symbol> entry : symbolTable.entrySet()) {
+            Symbol symbol = entry.getValue();
+            System.out.printf("%-10s %-20s %-15s %-10s %-15s%n",
+                    entry.getKey(),         // ID
+                    symbol.getSymb(),       // Symbol
+                    symbol.getType(),       // Type
+                    symbol.getScope(),      // Scope
+                    symbol.getName());      // Unique Name
         }
     }
 
@@ -254,6 +202,9 @@ public class SemanticAnalyzer {
         }
     }
 
-
-  
+    public static void main(String[] args) {
+        SemanticAnalyzer analyzer = new SemanticAnalyzer();
+        File xmlFile = new File("your_xml_file_path.xml"); // Replace with your XML file path
+        analyzer.analyze(xmlFile);
+    }
 }
