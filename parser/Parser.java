@@ -38,99 +38,146 @@ class Parser extends JFrame {
         Node syntaxTree = parser.parse(); // Parse tokens to generate syntax tree
         SwingUtilities.invokeLater(() -> { // Display syntax tree
             TreeVisualizer frame = new TreeVisualizer(syntaxTree); // Create TreeVisualizer object
-            frame.setVisible(true); // Set frame visibility
+            //frame.setVisible(true); // Set frame visibility
         });
         syntaxTree.print(""); // Print syntax tree
         String xml = TreeToXML(syntaxTree); // Convert syntax tree to XML
-        writeXMLToFile(xml, "syntax_tree.xml"); // Write syntax tree to XML file
+        System.out.println("calling WriteXMLFile");
+         writeXMLToFile(xml, "syntax_tree.xml"); // Write syntax tree to XML file
     }
 
     public static void main(String[] args) throws Exception {
         parseInit(); // Initialize parsing
     }
     //region: XML conversion
-    private static String TreeToXML(Node root) { // Convert syntax tree to XML for semantic table
+    public static String TreeToXML(Node root) { // Convert syntax tree to XML for semantic table
+        System.out.println("Starting TreeToXML conversion...");
+
         StringBuilder xml = new StringBuilder(); // Create StringBuilder object
         xml.append("<SYNTREE>\n"); // Append SYNTREE tag
+        System.out.println("Appended SYNTREE opening tag");
+
         appendRootNodeXML(root, xml, 1); // Append root node to XML
-        appendInnerNodesXML(root, xml, 1); // Append inner nodes to XML
-        appendLeafNodesXML(root, xml, 1); // Append leaf nodes to XML
+
+        // Process children of the root node for inner and leaf nodes
+        for (Node child : root.getChildren()) {
+            appendInnerNodesXML(child, xml, 1); // Append inner nodes to XML
+            appendLeafNodesXML(child, xml, 1); // Append leaf nodes to XML
+        }
+
         xml.append("</SYNTREE>\n"); // Append closing SYNTREE tag
+        System.out.println("Appended SYNTREE closing tag");
+
         return xml.toString(); // Return XML string
     }
 
     private static void appendRootNodeXML(Node root, StringBuilder xml, int level) { // Append root node to XML (PROG)
+        if (root == null) {
+            System.out.println("Root node is null, returning...");
+            return; // Check for null root
+        }
+
+        System.out.println("Appending root node: ID = " + root.getId() + ", Name = " + root.getName());
+
         xml.append(indent("<ROOT>\n", level)); // Append ROOT tag
         xml.append(indent("<UNID>" + root.getId() + "</UNID>\n", level + 1)); // Append UNID tag
         xml.append(indent("<SYMB>" + root.getName() + "</SYMB>\n", level + 1)); // Append SYMB tag
         xml.append(indent("<CHILDREN>\n", level + 1)); // Append CHILDREN tag
+
         for (Node child : root.getChildren()) { // Iterate through children
+            System.out.println("Appending child node ID: " + child.getId());
             xml.append(indent("<ID>" + child.getId() + "</ID>\n", level + 2)); // Append ID tag
         } // End iteration
+
         xml.append(indent("</CHILDREN>\n", level + 1)); // Append closing CHILDREN tag
         xml.append(indent("</ROOT>\n", level)); // Append closing ROOT tag
     }
 
     private static void appendInnerNodesXML(Node node, StringBuilder xml, int level) { // Append inner nodes to XML
-        if (!node.isTerminal()) { // If node is not terminal
-            xml.append(indent("<INNERNODES>\n", level)); // Append INNERNODES tag
-            appendInnerNodeDetailsXML(node, xml, level + 1); // Append inner node details to XML
-            xml.append(indent("</INNERNODES>\n", level)); // Append closing INNERNODES tag
+        if (node == null || (node.isTerminal() && !node.getName().matches("[A-Z]+"))) {
+            System.out.println("Node is null or terminal, skipping inner nodes...");
+            return; // Check for null or terminal node
         }
+
+        System.out.println("Appending inner node: ID = " + node.getId() + ", Name = " + node.getName());
+
+        xml.append(indent("<INNERNODES>\n", level)); // Append INNERNODES tag
+        appendInnerNodeDetailsXML(node, xml, level + 1); // Append inner node details to XML
+        xml.append(indent("</INNERNODES>\n", level)); // Append closing INNERNODES tag
     }
 
-    private static void appendInnerNodeDetailsXML(Node node, StringBuilder xml, int level) { // Append inner node
-                                                                                             // details to XML (
-                                                                                             // NON-TERMINALS )
+    private static void appendInnerNodeDetailsXML(Node node, StringBuilder xml, int level) { // Append inner node details to XML (NON-TERMINALS)
+        if (node == null || (node.isTerminal() && !node.getName().matches("[A-Z]+"))) {
+            System.out.println("Node is null or terminal, skipping inner node details...");
+            return; // Check for null or terminal node
+        }
+
+        System.out.println("Appending inner node details: ID = " + node.getId() + ", Name = " + node.getName());
+
         xml.append(indent("<IN>\n", level)); // Append IN tag
-        xml.append(indent("<PARENT>" + node.getId() + "</PARENT>\n", level + 1)); // Append PARENT tag
+        xml.append(indent("<PARENT>" + node.getParent().getId() + "</PARENT>\n", level + 1)); // Append PARENT tag
         xml.append(indent("<UNID>" + node.getId() + "</UNID>\n", level + 1)); // Append UNID tag
         xml.append(indent("<SYMB>" + node.getName() + "</SYMB>\n", level + 1)); // Append SYMB tag
         xml.append(indent("<CHILDREN>\n", level + 1)); // Append CHILDREN tag
+
         for (Node child : node.getChildren()) { // Iterate through children
+            System.out.println("Appending child node ID: " + child.getId());
             xml.append(indent("<ID>" + child.getId() + "</ID>\n", level + 2)); // Append ID tag
-        }
+        } // End iteration
+
         xml.append(indent("</CHILDREN>\n", level + 1)); // Append closing CHILDREN tag
         xml.append(indent("</IN>\n", level)); // Append closing IN tag
+
         for (Node child : node.getChildren()) { // Iterate through children
             appendInnerNodeDetailsXML(child, xml, level + 1); // Append inner node details to XML
-        }
+        } // End iteration
     }
 
-    private static void appendLeafNodesXML(Node node, StringBuilder xml, int level) { // Append leaf nodes to XML (
-                                                                                      // TERMINALS )
-        if (node.isTerminal()) { // If node is terminal
+    private static void appendLeafNodesXML(Node node, StringBuilder xml, int level) { // Append leaf nodes to XML (TERMINALS)
+        if (node == null) {
+            System.out.println("Node is null, skipping leaf nodes...");
+            return; // Check for null node
+        }
+
+        if (node.isTerminal() && !node.getName().matches("[A-Z]+")) { // If node is terminal and not a non-terminal symbol
+            System.out.println("Appending leaf node: ID = " + node.getId() + ", Name = " + node.getName());
             xml.append(indent("<LEAFNODES>\n", level)); // Append LEAFNODES tag
             appendLeafNodeDetailsXML(node, xml, level + 1); // Append leaf node details to XML
             xml.append(indent("</LEAFNODES>\n", level)); // Append closing LEAFNODES tag
-        } else { // If node is not terminal
+        } else { // If node is not terminal or is a non-terminal symbol
             for (Node child : node.getChildren()) { // Iterate through children
                 appendLeafNodesXML(child, xml, level + 1); // Append leaf nodes to XML
-            }
+            } // End iteration
         }
     }
 
-    private static void appendLeafNodeDetailsXML(Node node, StringBuilder xml, int level) { // Append leaf node details
-                                                                                            // to XML
+    private static void appendLeafNodeDetailsXML(Node node, StringBuilder xml, int level) { // Append leaf node details to XML
+        if (node == null) {
+            System.out.println("Node is null, skipping leaf node details...");
+            return; // Check for null node
+        }
+
+        System.out.println("Appending leaf node details: ID = " + node.getId() + ", Name = " + node.getName());
+
         xml.append(indent("<LEAF>\n", level)); // Append LEAF tag
-        xml.append(indent("<PARENT>" + node.getId() + "</PARENT>\n", level + 1)); // Append PARENT tag
+        xml.append(indent("<PARENT>" + node.getParent().getId() + "</PARENT>\n", level + 1)); // Append PARENT tag
         xml.append(indent("<UNID>" + node.getId() + "</UNID>\n", level + 1)); // Append UNID tag
         xml.append(indent("<TERMINAL>" + node.getName() + "</TERMINAL>\n", level + 1)); // Append TERMINAL tag
         xml.append(indent("</LEAF>\n", level)); // Append closing LEAF tag
     }
 
-
-    private static String indent(String text, int level) {
+    private static String indent(String text, int level) { // Indent text for XML formatting
         StringBuilder indentedText = new StringBuilder();
         for (int i = 0; i < level; i++) {
-            indentedText.append("  "); // Two spaces per level
+            indentedText.append("    "); // 4 spaces for each level
         }
-        indentedText.append(text); // Append text
+        indentedText.append(text);
         return indentedText.toString();
     }
 
     private static void writeXMLToFile(String xml, String filename) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            System.out.println("writing");
             writer.write(xml); // Write XML to file
         }
     }
