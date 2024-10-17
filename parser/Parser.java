@@ -59,11 +59,24 @@ class Parser extends JFrame {
 
         appendRootNodeXML(root, xml, 1); // Append root node to XML
 
-        // Process children of the root node for inner and leaf nodes
+        // Collect inner nodes and leaf nodes separately
+        StringBuilder innerNodesXML = new StringBuilder();
+        StringBuilder leafNodesXML = new StringBuilder();
+
+        innerNodesXML.append(indent("<INNERNODES>\n", 1)); // Start INNERNODES tag
+        leafNodesXML.append(indent("<LEAFNODES>\n", 1)); // Start LEAFNODES tag
+
         for (Node child : root.getChildren()) {
-            appendInnerNodesXML(child, xml, 1); // Append inner nodes to XML
-            appendLeafNodesXML(child, xml, 1); // Append leaf nodes to XML
+            collectInnerNodesXML(child, innerNodesXML, 2); // Collect inner nodes
+            collectLeafNodesXML(child, leafNodesXML, 2); // Collect leaf nodes
         }
+
+        innerNodesXML.append(indent("</INNERNODES>\n", 1)); // End INNERNODES tag
+        leafNodesXML.append(indent("</LEAFNODES>\n", 1)); // End LEAFNODES tag
+
+        // Append collected inner nodes and leaf nodes
+        xml.append(innerNodesXML.toString());
+        xml.append(leafNodesXML.toString());
 
         xml.append("</SYNTREE>\n"); // Append closing SYNTREE tag
         System.out.println("Appended SYNTREE closing tag");
@@ -93,17 +106,15 @@ class Parser extends JFrame {
         xml.append(indent("</ROOT>\n", level)); // Append closing ROOT tag
     }
 
-    private static void appendInnerNodesXML(Node node, StringBuilder xml, int level) { // Append inner nodes to XML
+    private static void collectInnerNodesXML(Node node, StringBuilder xml, int level) { // Collect inner nodes to XML
         if (node == null || (node.isTerminal() && !node.getName().matches("[A-Z]+"))) {
             System.out.println("Node is null or terminal, skipping inner nodes...");
             return; // Check for null or terminal node
         }
 
-        System.out.println("Appending inner node: ID = " + node.getId() + ", Name = " + node.getName());
+        System.out.println("Collecting inner node: ID = " + node.getId() + ", Name = " + node.getName());
 
-        xml.append(indent("<INNERNODES>\n", level)); // Append INNERNODES tag
-        appendInnerNodeDetailsXML(node, xml, level + 1); // Append inner node details to XML
-        xml.append(indent("</INNERNODES>\n", level)); // Append closing INNERNODES tag
+        appendInnerNodeDetailsXML(node, xml, level); // Append inner node details to XML
     }
 
     private static void appendInnerNodeDetailsXML(Node node, StringBuilder xml, int level) { // Append inner node details to XML (NON-TERMINALS)
@@ -133,20 +144,18 @@ class Parser extends JFrame {
         } // End iteration
     }
 
-    private static void appendLeafNodesXML(Node node, StringBuilder xml, int level) { // Append leaf nodes to XML (TERMINALS)
+    private static void collectLeafNodesXML(Node node, StringBuilder xml, int level) { // Collect leaf nodes to XML (TERMINALS)
         if (node == null) {
             System.out.println("Node is null, skipping leaf nodes...");
             return; // Check for null node
         }
 
         if (node.isTerminal() && !node.getName().matches("[A-Z]+")) { // If node is terminal and not a non-terminal symbol
-            System.out.println("Appending leaf node: ID = " + node.getId() + ", Name = " + node.getName());
-            xml.append(indent("<LEAFNODES>\n", level)); // Append LEAFNODES tag
-            appendLeafNodeDetailsXML(node, xml, level + 1); // Append leaf node details to XML
-            xml.append(indent("</LEAFNODES>\n", level)); // Append closing LEAFNODES tag
+            System.out.println("Collecting leaf node: ID = " + node.getId() + ", Name = " + node.getName());
+            appendLeafNodeDetailsXML(node, xml, level); // Append leaf node details to XML
         } else { // If node is not terminal or is a non-terminal symbol
             for (Node child : node.getChildren()) { // Iterate through children
-                appendLeafNodesXML(child, xml, level + 1); // Append leaf nodes to XML
+                collectLeafNodesXML(child, xml, level + 1); // Collect leaf nodes to XML
             } // End iteration
         }
     }
