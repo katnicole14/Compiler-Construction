@@ -1,5 +1,5 @@
 main
 begin
-    print "Greetings" ;
+    print Greetings ;
     halt ;
 end
