@@ -38,11 +38,11 @@ class Parser extends JFrame {
         Node syntaxTree = parser.parse(); // Parse tokens to generate syntax tree
         SwingUtilities.invokeLater(() -> { // Display syntax tree
             TreeVisualizer frame = new TreeVisualizer(syntaxTree); // Create TreeVisualizer object
-            //frame.setVisible(true); // Set frame visibility
+            frame.setVisible(true); // Set frame visibility
         });
         syntaxTree.print(""); // Print syntax tree
         String xml = TreeToXML(syntaxTree); // Convert syntax tree to XML
-        System.out.println("calling WriteXMLFile");
+        
          writeXMLToFile(xml, "syntax_tree.xml"); // Write syntax tree to XML file
     }
 
@@ -51,11 +51,8 @@ class Parser extends JFrame {
     }
     //region: XML conversion
     public static String TreeToXML(Node root) { // Convert syntax tree to XML for semantic table
-        System.out.println("Starting TreeToXML conversion...");
-
         StringBuilder xml = new StringBuilder(); // Create StringBuilder object
         xml.append("<SYNTREE>\n"); // Append SYNTREE tag
-        System.out.println("Appended SYNTREE opening tag");
 
         appendRootNodeXML(root, xml, 1); // Append root node to XML
 
@@ -79,18 +76,12 @@ class Parser extends JFrame {
         xml.append(leafNodesXML.toString());
 
         xml.append("</SYNTREE>\n"); // Append closing SYNTREE tag
-        System.out.println("Appended SYNTREE closing tag");
 
         return xml.toString(); // Return XML string
     }
 
     private static void appendRootNodeXML(Node root, StringBuilder xml, int level) { // Append root node to XML (PROG)
-        if (root == null) {
-            System.out.println("Root node is null, returning...");
-            return; // Check for null root
-        }
-
-        System.out.println("Appending root node: ID = " + root.getId() + ", Name = " + root.getName());
+        if (root == null) return; // Check for null root
 
         xml.append(indent("<ROOT>\n", level)); // Append ROOT tag
         xml.append(indent("<UNID>" + root.getId() + "</UNID>\n", level + 1)); // Append UNID tag
@@ -98,7 +89,6 @@ class Parser extends JFrame {
         xml.append(indent("<CHILDREN>\n", level + 1)); // Append CHILDREN tag
 
         for (Node child : root.getChildren()) { // Iterate through children
-            System.out.println("Appending child node ID: " + child.getId());
             xml.append(indent("<ID>" + child.getId() + "</ID>\n", level + 2)); // Append ID tag
         } // End iteration
 
@@ -107,23 +97,13 @@ class Parser extends JFrame {
     }
 
     private static void collectInnerNodesXML(Node node, StringBuilder xml, int level) { // Collect inner nodes to XML
-        if (node == null || (node.isTerminal() && !node.getName().matches("[A-Z]+"))) {
-            System.out.println("Node is null or terminal, skipping inner nodes...");
-            return; // Check for null or terminal node
-        }
-
-        System.out.println("Collecting inner node: ID = " + node.getId() + ", Name = " + node.getName());
+        if (node == null || (node.isTerminal() && !node.getName().matches("[A-Z]+"))) return; // Check for null or terminal node
 
         appendInnerNodeDetailsXML(node, xml, level); // Append inner node details to XML
     }
 
     private static void appendInnerNodeDetailsXML(Node node, StringBuilder xml, int level) { // Append inner node details to XML (NON-TERMINALS)
-        if (node == null || (node.isTerminal() && !node.getName().matches("[A-Z]+"))) {
-            System.out.println("Node is null or terminal, skipping inner node details...");
-            return; // Check for null or terminal node
-        }
-
-        System.out.println("Appending inner node details: ID = " + node.getId() + ", Name = " + node.getName());
+        if (node == null || (node.isTerminal() && !node.getName().matches("[A-Z]+"))) return; // Check for null or terminal node
 
         xml.append(indent("<IN>\n", level)); // Append IN tag
         xml.append(indent("<PARENT>" + node.getParent().getId() + "</PARENT>\n", level + 1)); // Append PARENT tag
@@ -132,7 +112,6 @@ class Parser extends JFrame {
         xml.append(indent("<CHILDREN>\n", level + 1)); // Append CHILDREN tag
 
         for (Node child : node.getChildren()) { // Iterate through children
-            System.out.println("Appending child node ID: " + child.getId());
             xml.append(indent("<ID>" + child.getId() + "</ID>\n", level + 2)); // Append ID tag
         } // End iteration
 
@@ -145,13 +124,9 @@ class Parser extends JFrame {
     }
 
     private static void collectLeafNodesXML(Node node, StringBuilder xml, int level) { // Collect leaf nodes to XML (TERMINALS)
-        if (node == null) {
-            System.out.println("Node is null, skipping leaf nodes...");
-            return; // Check for null node
-        }
+        if (node == null) return; // Check for null node
 
         if (node.isTerminal() && !node.getName().matches("[A-Z]+")) { // If node is terminal and not a non-terminal symbol
-            System.out.println("Collecting leaf node: ID = " + node.getId() + ", Name = " + node.getName());
             appendLeafNodeDetailsXML(node, xml, level); // Append leaf node details to XML
         } else { // If node is not terminal or is a non-terminal symbol
             for (Node child : node.getChildren()) { // Iterate through children
@@ -161,12 +136,7 @@ class Parser extends JFrame {
     }
 
     private static void appendLeafNodeDetailsXML(Node node, StringBuilder xml, int level) { // Append leaf node details to XML
-        if (node == null) {
-            System.out.println("Node is null, skipping leaf node details...");
-            return; // Check for null node
-        }
-
-        System.out.println("Appending leaf node details: ID = " + node.getId() + ", Name = " + node.getName());
+        if (node == null) return; // Check for null node
 
         xml.append(indent("<LEAF>\n", level)); // Append LEAF tag
         xml.append(indent("<PARENT>" + node.getParent().getId() + "</PARENT>\n", level + 1)); // Append PARENT tag
@@ -186,7 +156,7 @@ class Parser extends JFrame {
 
     private static void writeXMLToFile(String xml, String filename) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            System.out.println("writing");
+            
             writer.write(xml); // Write XML to file
         }
     }
