@@ -6,9 +6,12 @@ import javax.xml.parsers.*;
 import java.io.File;
 import java.util.*;
 
+
 public class SemanticAnalyzer {
     // HashMap to represent the symbol table
-    private Map<String, Symbol> symbolTable = new HashMap<>();
+    private Map<String, Symbol> vtable = new HashMap<>();
+    private Map<String, Symbol> ftable = new HashMap<>();
+
     // Stack to manage scopes
     private Stack<String> scopeStack = new Stack<>();
     // List to store semantic errors
@@ -16,10 +19,12 @@ public class SemanticAnalyzer {
     // Counter for generating unique names
     private int uniqueCounterVariable = 0;
     private int uniqueCounterFunction = 0;
+    private static File xmlfile ;
 
     // Method to analyze the syntax tree
     public void analyze(File xmlFile) {
         try {
+            this.xmlfile = xmlFile;
             // Parse the XML document
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -31,7 +36,7 @@ public class SemanticAnalyzer {
             traverseNode(root);
 
             // After traversal, print the symbol table
-            printSymbolTable();
+            printSymbolTables();
             printErrors();
 
         } catch (Exception e) {
@@ -61,7 +66,7 @@ public class SemanticAnalyzer {
     // Handle ROOT node
     private void handleRootNode(Node node) {
         // Push the root scope (main program scope) onto the stack
-        scopeStack.push("MAIN");
+        scopeStack.push("GLOBAL");
         processChildren(node);
         // Pop the root scope after traversal
         scopeStack.pop();
@@ -78,25 +83,71 @@ public class SemanticAnalyzer {
     // Handle LEAF nodes (variables or terminal symbols)
     private void handleLeafNodes(Node node) {
         String terminal = getTextContent(node, "TERMINAL");
-        String parent = getTextContent(node, "PARENT");
+        //String parent = getTextContent(node, "PARENT");
         String unid = getTextContent(node, "UNID");
     
         // Handle terminal nodes (tokens from the lexer)
+
+        String parent =null;
+        String grandparent = null;
+        String grandSymb  = null;
         if (isFunction(terminal)) {
             // Function scope handling
-            if (scopeStack.contains(terminal)) {
-                throwError("Function name conflict in scope", unid);
+            try {
+                parent = getParent(unid);
+                grandparent = getParent(parent);
+                grandSymb = getSymbolByUNID(grandparent);
+            } catch (Exception e) {
+                e.printStackTrace(); // Handle any exceptions (can log or rethrow if necessary)
             }
+        
+            boolean inTable = findSymbolByName(terminal); // Check if the function is already in the symbol table
+            boolean declaration = "HEADER".equals(grandSymb); // Check if the grandparent is 'HEADER'
+
+        
+            if (inTable && declaration) {
+                throwError("Function name conflict in scope", unid); // Conflict: function already declared in this scope
+            } else if (!inTable && declaration) {
+                // Only add to the table if it's not already in the table and grandparent is 'HEADER'
+                String uniqueName = generateUniqueName(terminal);
+                String scope = scopeStack.peek();
+                scopeStack.push(uniqueName); // Push the new unique function name onto the scope stack
+                ftable.put(unid, new Symbol(uniqueName, "function", scope, terminal)); // Add the function to the symbol table
+            } else if (terminal.equals("main")) {
+            ftable.put(unid, new Symbol(terminal, "main", scopeStack.peek(),terminal )); // Store 'main' in the symbol table
+        } 
+    }
+    else if (isToken(terminal) && !isKeyword(terminal)) {
+        try {
+            // Get parent and grandparent nodes
+            parent = getParent(unid);
+            grandparent = getParent(parent);
+            grandSymb = getSymbolByUNID(grandparent);
+        } catch (Exception e) {
+            // Handle any exceptions
+            e.printStackTrace(); // Log or handle exceptions as necessary
+        }
+    
+        boolean local = grandSymb.equals("LOCVARS");
+        boolean global = grandSymb.equals("GLOBVARS");
+        boolean parameter = grandSymb.equals("HEADER");
+        boolean sameScope = findSymbolByNameInScope(terminal, scopeStack.peek());
+
+
+        if (sameScope && (local || global)) {
+            // If sameScope is true and grandparent is either "LOCVARS" or "GLOBVARS", raise an error
+            throwError("Variable name conflict in scope", unid); // Raise a variable name conflict
+        } else {
+            // If no conflict, add the new variable to the symbol table
+            if (local || global || parameter) {
             String uniqueName = generateUniqueName(terminal);
-            scopeStack.push(uniqueName);
-            symbolTable.put(unid, new Symbol(uniqueName, "function", scopeStack.peek(), terminal)); // Store function in the symbol table
-        } else if (terminal.equals("main")) {
-            symbolTable.put(unid, new Symbol(terminal, "main", parent, terminal)); // Store 'main' in the symbol table
-        } else if (isToken(terminal) && !isKeyword(terminal)) {
-            String uniqueName = generateUniqueName(terminal);
-            symbolTable.put(unid, new Symbol(uniqueName, "variable", parent, terminal)); // Store other tokens in the symbol table
+            vtable.put(unid, new Symbol(uniqueName, "variable", scopeStack.peek(), terminal)); // Store variable in the symbol table
         }
     }
+    }
+     
+    }
+    
     
     // Helper method to process child nodes
     private void processChildren(Node node) {
@@ -129,13 +180,15 @@ public class SemanticAnalyzer {
         }
     }
 
+    
+
     // Helper method to generate unique names
     private String generateUniqueName(String baseName) {
        
         if (isFunction(baseName)){
-            return "f_" + (uniqueCounterFunction++);
+            return "f" + (uniqueCounterFunction++);
         }
-        else return "v_" + (uniqueCounterVariable++);
+        else return "v" + (uniqueCounterVariable++);
 
       
     }
@@ -172,23 +225,60 @@ public class SemanticAnalyzer {
     }
 
     // Method to print the symbol table in a table format
-    private void printSymbolTable() {
-        System.out.println("Symbol Table:");
-        // Print the table headers with appropriate spacing
-        System.out.printf("%-10s %-20s %-15s %-10s %-15s%n", "ID", "Symbol", "Type", "Scope", "Unique Name");
-        System.out.println("--------------------------------------------------------------------------");
-
-        // Loop through the symbol table and print each entry in a formatted manner
-        for (Map.Entry<String, Symbol> entry : symbolTable.entrySet()) {
-            Symbol symbol = entry.getValue();
-            System.out.printf("%-10s %-20s %-15s %-10s %-15s%n",
-                    entry.getKey(),         // ID
-                    symbol.getSymb(),       // Symbol
-                    symbol.getType(),       // Type
-                    symbol.getScope(),      // Scope
-                    symbol.getName());      // Unique Name
-        }
+    private void printSymbolTables() {
+        printVTable();
+        System.out.println();
+        printFTable();
     }
+
+    // Method to print vtable (Variable Table)
+private void printVTable() {
+    System.out.println("Variable Table:");
+    // Print the table headers for variables
+    System.out.printf("%-10s %-20s %-15s %-10s %-15s%n", "ID", "Symbol", "Type", "Scope", "Unique Name");
+    System.out.println("--------------------------------------------------------------------------");
+
+    // Loop through the vtable and print each entry
+    for (Map.Entry<String, Symbol> entry : vtable.entrySet()) {
+        Symbol symbol = entry.getValue();
+        System.out.printf("%-10s %-20s %-15s %-10s %-15s%n",
+                entry.getKey(),         // ID
+                symbol.getSymb(),       // Symbol
+                symbol.getType(),       // Type
+                symbol.getScope(),      // Scope
+                symbol.getName());      // Unique Name
+    }
+}
+
+// Method to print ftable (Function Table)
+private void printFTable() {
+    System.out.println("Function Table:");
+    // Print the table headers for functions
+    System.out.printf("%-10s %-20s %-15s %-10s %-15s %-15s %-15s%n", 
+                      "ID", "Symbol", "Type", "Scope", "Unique Name", "Return Type", "Parameters");
+    System.out.println("-------------------------------------------------------------------------------------");
+
+    // Loop through the ftable and print each entry
+    for (Map.Entry<String, Symbol> entry : ftable.entrySet()) {
+        Symbol symbol = entry.getValue();
+        
+        // // Assuming the Symbol class has methods for return type and parameters
+        // String returnType = symbol.getReturnType(); // Placeholder for return type
+        // String parameters = symbol.getParameters(); // Placeholder for function parameters
+
+        String returnType = "";
+        String parameters = "" ;
+        
+        System.out.printf("%-10s %-20s %-15s %-10s %-15s %-15s %-15s%n",
+                entry.getKey(),         // ID
+                symbol.getSymb(),       // Symbol
+                symbol.getType(),       // Type
+                symbol.getScope(),      // Scope
+                symbol.getName(),       // Unique Name
+                returnType,             // Return Type
+                parameters);            // Function Parameters
+    }
+}
 
     // Method to print errors
     private void printErrors() {
@@ -202,9 +292,172 @@ public class SemanticAnalyzer {
         }
     }
 
+// Method to find a symbol by name in either vtable or ftable
+public boolean findSymbolByName(String name) {
+    // Search in vtable (variable table)
+    if (findSymbolInTable(vtable, name)) {
+        return true;
+    }
+
+    // Search in ftable (function table)
+    return findSymbolInTable(ftable, name);
+}
+
+// Helper method to search a symbol by name in a specific table
+private boolean findSymbolInTable(Map<String, Symbol> table, String name) {
+    for (Map.Entry<String, Symbol> entry : table.entrySet()) {
+        Symbol symbol = entry.getValue();
+        if (symbol.getSymb().equals(name)) {
+            return true; // Return true if the symbol matches
+        }
+    }
+    return false; // Return false if no symbol with the name is found
+}
+
+// Method to find a symbol by name in a specific scope (for both vtable and ftable)
+private boolean findSymbolByNameInScope(String name, String currentScope) {
+    // Search in vtable (variable table)
+    if (findSymbolInScopeInTable(vtable, name, currentScope)) {
+        return true;
+    }
+
+    // Search in ftable (function table)
+    return findSymbolInScopeInTable(ftable, name, currentScope);
+}
+
+// Helper method to search a symbol by name in a specific scope within a table
+private boolean findSymbolInScopeInTable(Map<String, Symbol> table, String name, String currentScope) {
+    for (Map.Entry<String, Symbol> entry : table.entrySet()) {
+        Symbol symbol = entry.getValue();
+        if (symbol.getSymb().equals(name) && symbol.getScope().equals(currentScope)) {
+            return true; // Name conflict found in the same scope
+        }
+    }
+    return false; // No conflict in the current scope
+}
+
+    private String getSymbolByUNID(String UNID) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document doc = builder.parse(xmlfile);
+
+        // Check in Inner Nodes (IN)
+        NodeList innerNodes = doc.getElementsByTagName("IN");
+        for (int i = 0; i < innerNodes.getLength(); i++) {
+            Element node = (Element) innerNodes.item(i);
+            String nodeUNID = node.getElementsByTagName("UNID").item(0).getTextContent();
+            if (nodeUNID.equals(UNID)) {
+                return node.getElementsByTagName("SYMB").item(0).getTextContent();
+            }
+        }
+
+        // Check in Leaf Nodes (LEAF)
+        NodeList leafNodes = doc.getElementsByTagName("LEAF");
+        for (int i = 0; i < leafNodes.getLength(); i++) {
+            Element node = (Element) leafNodes.item(i);
+            String nodeUNID = node.getElementsByTagName("UNID").item(0).getTextContent();
+            if (nodeUNID.equals(UNID)) {
+                return node.getElementsByTagName("TERMINAL").item(0).getTextContent();
+            }
+        }
+
+        return null; // Return null if no match is found
+    }
+
+      // Function to get the parent UNID for a given node UNID
+      public static String getParent(String UNID) throws Exception {
+        Document doc = parseXML(xmlfile);
+
+        // Check in Inner Nodes
+        NodeList innerNodes = doc.getElementsByTagName("IN");
+        for (int i = 0; i < innerNodes.getLength(); i++) {
+            Element node = (Element) innerNodes.item(i);
+            String nodeUNID = node.getElementsByTagName("UNID").item(0).getTextContent();
+            if (nodeUNID.equals(UNID)) {
+                return node.getElementsByTagName("PARENT").item(0).getTextContent();
+            }
+        }
+
+        // Check in Leaf Nodes
+        NodeList leafNodes = doc.getElementsByTagName("LEAF");
+        for (int i = 0; i < leafNodes.getLength(); i++) {
+            Element node = (Element) leafNodes.item(i);
+            String nodeUNID = node.getElementsByTagName("UNID").item(0).getTextContent();
+            if (nodeUNID.equals(UNID)) {
+                return node.getElementsByTagName("PARENT").item(0).getTextContent();
+            }
+        }
+
+        return null; // Return null if no parent is found
+    }
+
+    // Function to get the children UNIDs for a given node UNID
+    public static List<String> getChildren(String UNID) throws Exception {
+        Document doc = parseXML(xmlfile);
+        List<String> children = new ArrayList<>();
+
+        // Check in Root
+        Node rootNode = doc.getElementsByTagName("ROOT").item(0);
+        NodeList childrenNodes = ((Element) rootNode).getElementsByTagName("CHILDREN");
+        for (int i = 0; i < childrenNodes.getLength(); i++) {
+            Element childElement = (Element) childrenNodes.item(i);
+            NodeList childIDs = childElement.getElementsByTagName("ID");
+            for (int j = 0; j < childIDs.getLength(); j++) {
+                String childUNID = childIDs.item(j).getTextContent();
+                if (childUNID.equals(UNID)) {
+                    for (int k = 0; k < childIDs.getLength(); k++) {
+                        children.add(childIDs.item(k).getTextContent());
+                    }
+                }
+            }
+        }
+
+        // Check in Inner Nodes
+        NodeList innerNodes = doc.getElementsByTagName("IN");
+        for (int i = 0; i < innerNodes.getLength(); i++) {
+            Element node = (Element) innerNodes.item(i);
+            String nodeUNID = node.getElementsByTagName("UNID").item(0).getTextContent();
+            if (nodeUNID.equals(UNID)) {
+                NodeList childElements = node.getElementsByTagName("CHILDREN");
+                for (int j = 0; j < childElements.getLength(); j++) {
+                    Element childElement = (Element) childElements.item(j);
+                    NodeList childIDs = childElement.getElementsByTagName("ID");
+                    for (int k = 0; k < childIDs.getLength(); k++) {
+                        children.add(childIDs.item(k).getTextContent());
+                    }
+                }
+            }
+        }
+
+        // Check in Leaf Nodes
+        NodeList leafNodes = doc.getElementsByTagName("LEAF");
+        for (int i = 0; i < leafNodes.getLength(); i++) {
+            Element node = (Element) leafNodes.item(i);
+            String nodeUNID = node.getElementsByTagName("UNID").item(0).getTextContent();
+            if (nodeUNID.equals(UNID)) {
+                NodeList childElements = node.getElementsByTagName("CHILDREN");
+                for (int j = 0; j < childElements.getLength(); j++) {
+                    Element childElement = (Element) childElements.item(j);
+                    NodeList childIDs = childElement.getElementsByTagName("ID");
+                    for (int k = 0; k < childIDs.getLength(); k++) {
+                        children.add(childIDs.item(k).getTextContent());
+                    }
+                }
+            }
+        }
+
+        return children; // Return list of children UNIDs
+    }
+
+    private static Document parseXML(File xmlFile) throws Exception {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        return builder.parse(xmlFile);
+    }
+
     public static void main(String[] args) {
         SemanticAnalyzer analyzer = new SemanticAnalyzer();
-        File xmlFile = new File("your_xml_file_path.xml"); // Replace with your XML file path
+        File xmlFile = new File("syntax_tree.xml"); // Replace with your XML file path
         analyzer.analyze(xmlFile);
     }
 }

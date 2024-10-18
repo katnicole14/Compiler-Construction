@@ -1,19 +1,22 @@
 package symbol_table;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Symbol {
     private String name;
     private String type;
     private String scope;
     private List<String> parameters;
-    String symb;
+    private String symb;
+    
 
     public Symbol(String name, String type, String scope, String symb) {
         this.name = name;
         this.type = type;
         this.scope = scope;
-        this.symb= symb;
+        this.symb = symb;
+    
     }
 
        public Symbol(String name, String type, String scope, List<String> parameters, String symb) {
@@ -21,7 +24,7 @@ public class Symbol {
         this.type = type;
         this.scope = scope;
         this.parameters = parameters;
-        this.symb= symb;
+        this.symb = symb;
     }
     public String getName() {
         return name;
@@ -35,7 +38,7 @@ public class Symbol {
     public String getSymb() {
         return symb;
     }
-
+  
     public List<String> getParameters(){
         return parameters;
     }
