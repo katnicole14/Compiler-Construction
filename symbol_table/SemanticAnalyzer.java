@@ -91,19 +91,36 @@ public class SemanticAnalyzer {
         String parent =null;
         String grandparent = null;
         String grandSymb  = null;
+        List<String> childList = new ArrayList<>();  
+        List<String> children = new ArrayList<>();   
+        List<String> temp  = null;
         if (isFunction(terminal)) {
             // Function scope handling
             try {
                 parent = getParent(unid);
                 grandparent = getParent(parent);
                 grandSymb = getSymbolByUNID(grandparent);
+                childList = getChildren(grandparent);
+                 
+                for (String child : childList) {
+                    // Check your condition (e.g., if the child contains "special")
+                    if (getSymbolByUNID(child).equals("VNAME")) {
+                        // Add to childlist if condition is met
+                        temp = getChildren(child);
+                        children.add(getSymbolByUNID(temp.get(0)));
+                    }
+                }
+
+               
             } catch (Exception e) {
                 e.printStackTrace(); // Handle any exceptions (can log or rethrow if necessary)
             }
         
+         
             boolean inTable = findSymbolByName(terminal); // Check if the function is already in the symbol table
             boolean declaration = "HEADER".equals(grandSymb); // Check if the grandparent is 'HEADER'
 
+           
         
             if (inTable && declaration) {
                 throwError("Function name conflict in scope", unid); // Conflict: function already declared in this scope
@@ -112,9 +129,9 @@ public class SemanticAnalyzer {
                 String uniqueName = generateUniqueName(terminal);
                 String scope = scopeStack.peek();
                 scopeStack.push(uniqueName); // Push the new unique function name onto the scope stack
-                ftable.put(unid, new Symbol(uniqueName, "function", scope, terminal)); // Add the function to the symbol table
+                ftable.put(unid, new Symbol(uniqueName, "function", scope, children,terminal)); // Add the function to the symbol table
             } else if (terminal.equals("main")) {
-            ftable.put(unid, new Symbol(terminal, "main", scopeStack.peek(),terminal )); // Store 'main' in the symbol table
+            ftable.put(unid, new Symbol(terminal, "main", scopeStack.peek(),children,terminal )); // Store 'main' in the symbol table
         } 
     }
     else if (isToken(terminal) && !isKeyword(terminal)) {
@@ -262,13 +279,14 @@ private void printFTable() {
     for (Map.Entry<String, Symbol> entry : ftable.entrySet()) {
         Symbol symbol = entry.getValue();
         
-        // // Assuming the Symbol class has methods for return type and parameters
-        // String returnType = symbol.getReturnType(); // Placeholder for return type
-        // String parameters = symbol.getParameters(); // Placeholder for function parameters
+        // Get the return type and parameters
+       // String returnType = symbol.getReturnType();  // Assuming getReturnType exists
+        List<String> parameters = symbol.getParameters(); // Assuming getParameters returns a List<String>
+        String returnType ="";
+        // Join parameters into a single string separated by commas
+        String parameterString = String.join(", ", parameters);
 
-        String returnType = "";
-        String parameters = "" ;
-        
+        // Print the function details including parameters as a single string
         System.out.printf("%-10s %-20s %-15s %-10s %-15s %-15s %-15s%n",
                 entry.getKey(),         // ID
                 symbol.getSymb(),       // Symbol
@@ -276,9 +294,10 @@ private void printFTable() {
                 symbol.getScope(),      // Scope
                 symbol.getName(),       // Unique Name
                 returnType,             // Return Type
-                parameters);            // Function Parameters
+                parameterString);       // Function Parameters (joined as a single string)
     }
 }
+
 
     // Method to print errors
     private void printErrors() {
