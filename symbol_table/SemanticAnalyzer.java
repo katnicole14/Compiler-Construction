@@ -94,6 +94,7 @@ public class SemanticAnalyzer {
         List<String> childList = new ArrayList<>();  
         List<String> children = new ArrayList<>();   
         List<String> temp  = null;
+        String types = "";
         if (isFunction(terminal)) {
             // Function scope handling
             try {
@@ -108,6 +109,12 @@ public class SemanticAnalyzer {
                         // Add to childlist if condition is met
                         temp = getChildren(child);
                         children.add(getSymbolByUNID(temp.get(0)));
+                    }
+
+                    if (getSymbolByUNID(child).equals("FTYP")) {
+                        // Add to childlist if condition is met
+                        temp = getChildren(child);
+                        types = getSymbolByUNID(temp.get(0));
                     }
                 }
 
@@ -129,7 +136,7 @@ public class SemanticAnalyzer {
                 String uniqueName = generateUniqueName(terminal);
                 String scope = scopeStack.peek();
                 scopeStack.push(uniqueName); // Push the new unique function name onto the scope stack
-                ftable.put(unid, new Symbol(uniqueName, "function", scope, children,terminal)); // Add the function to the symbol table
+                ftable.put(unid, new Symbol(uniqueName, types, scope, children,terminal)); // Add the function to the symbol table
             } else if (terminal.equals("main")) {
             ftable.put(unid, new Symbol(terminal, "main", scopeStack.peek(),children,terminal )); // Store 'main' in the symbol table
         } 
@@ -140,27 +147,60 @@ public class SemanticAnalyzer {
             parent = getParent(unid);
             grandparent = getParent(parent);
             grandSymb = getSymbolByUNID(grandparent);
+            childList = getChildren(grandparent);
+
+            boolean local = grandSymb.equals("LOCVARS");
+            boolean global = grandSymb.equals("GLOBVARS");
+            
+            boolean parameter = grandSymb.equals("HEADER");
+            boolean sameScope = findSymbolByNameInScope(terminal, scopeStack.peek());
+
+                 for (String child : childList) {
+                // Check your condition (e.g., if the child contains "special")
+             
+            if (parameter) {
+                temp = getChildren(child);
+                types = "parameter";
+                
+            }
+                if (getSymbolByUNID(child).equals("VNAME") ) {
+                    // Add to childlist if condition is met
+                    
+                    temp = getChildren(child);
+                    children.add(getSymbolByUNID(temp.get(0)));
+                }
+
+                if (getSymbolByUNID(child).equals("VTYP")) {
+                    //System.out.println(getSymbolByUNID(child));
+                    // Add to childlist if condition is met
+                    temp = getChildren(child);
+                    types = getSymbolByUNID(temp.get(0));
+                }
+            }
+
+            if (sameScope && (local || global)) {
+                // If sameScope is true and grandparent is either "LOCVARS" or "GLOBVARS", raise an error
+                throwError("Variable name conflict in scope", unid); // Raise a variable name conflict
+            } else {
+                // If no conflict, add the new variable to the symbol table
+                if (local || global || parameter) {
+                String uniqueName = generateUniqueName(terminal);
+             
+                vtable.put(unid, new Symbol(uniqueName, types, scopeStack.peek(), terminal)); // Store variable in the symbol table
+            }
+        }
         } catch (Exception e) {
             // Handle any exceptions
             e.printStackTrace(); // Log or handle exceptions as necessary
         }
-    
-        boolean local = grandSymb.equals("LOCVARS");
-        boolean global = grandSymb.equals("GLOBVARS");
-        boolean parameter = grandSymb.equals("HEADER");
-        boolean sameScope = findSymbolByNameInScope(terminal, scopeStack.peek());
 
 
-        if (sameScope && (local || global)) {
-            // If sameScope is true and grandparent is either "LOCVARS" or "GLOBVARS", raise an error
-            throwError("Variable name conflict in scope", unid); // Raise a variable name conflict
-        } else {
-            // If no conflict, add the new variable to the symbol table
-            if (local || global || parameter) {
-            String uniqueName = generateUniqueName(terminal);
-            vtable.put(unid, new Symbol(uniqueName, "variable", scopeStack.peek(), terminal)); // Store variable in the symbol table
-        }
-    }
+
+
+
+        
+
+   
     }
      
     }
