@@ -7,22 +7,100 @@ import java.io.File;
 import java.util.*;
 
 
-public class SemanticAnalyzer {
-    // HashMap to represent the symbol table
-    private Map<String, Symbol> vtable = new HashMap<>();
-    private Map<String, Symbol> ftable = new HashMap<>();
+public class TypeChecker {
 
-    // Stack to manage scopes
-    private Stack<String> scopeStack = new Stack<>();
-    // List to store semantic errors
-    private List<String> errors = new ArrayList<>();
-    // Counter for generating unique names
-    private int uniqueCounterVariable = 0;
-    private int uniqueCounterFunction = 0;
+    private Map<String, Symbol> vtable ;
+    private Map<String, Symbol> ftable ;
     private static File xmlfile ;
+    public TypeChecker() {
 
-    // Method to analyze the syntax tree
-    public void analyze(File xmlFile) {
+    }
+    
+ 
+    public boolean typeCheck(String symbol){
+        switch (symbol) {
+            case "PROG":
+                return typeCheck("GLOBVARS") && typeCheck("ALGO") && typeCheck("FUNCTIONS");
+            
+            case "GLOBVARS": //both cases
+                return false;
+            
+            case "ALGO":
+                return typeCheck("INSTRUC");
+            case "INSTRUC": ///add both cases
+
+                return false;
+
+            case "COMMAND": //handle all the command 
+                return false;
+
+            case "ATOMIC": //handle atomic
+                return false;
+
+            case "ASSIGN":  //handle the implementation
+                return false;
+
+            case "TERM": // handle the cases 
+                return false;
+
+            case "CALL":
+                return false;
+
+            case "OP": //HANDLE BOTH unop
+                return false;
+
+            case "ARG":
+                return false;
+            case "UNOP": 
+                return false;
+            case "BINOP":
+                return false;
+            case "BRANCH":
+                return false;
+            case "COND":
+                return false;
+            case "SIMPLE" :
+                return false;
+            case "COMPOSITE":
+                return false;
+            
+            case "FNAME":
+            return false;
+
+            case "FUNCTIONS":
+            return false;
+
+            case "DECL":
+            return false ;
+
+            case "HEADER":
+            return false;
+
+            case "FTYP":
+            return false;
+
+            case "BODY":
+            return false;
+
+            case "PROLOG":
+            return false;
+
+            case "EPILOG":
+            return false;
+
+            case "LOCVARS":
+            return false;
+
+            case "SUBFUNCS":
+             return typeCheck("FUNCTIONS");        
+
+        }
+        return false;
+
+    }
+
+
+    public void typeCheckers(File xmlFile) {
         try {
             this.xmlfile = xmlFile;
             // Parse the XML document
@@ -35,9 +113,6 @@ public class SemanticAnalyzer {
             Element root = (Element) doc.getElementsByTagName("ROOT").item(0);
             traverseNode(root);
 
-            // After traversal, print the symbol table
-            printSymbolTables();
-            printErrors();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -65,11 +140,8 @@ public class SemanticAnalyzer {
 
     // Handle ROOT node
     private void handleRootNode(Node node) {
-        // Push the root scope (main program scope) onto the stack
-        scopeStack.push("GLOBAL");
         processChildren(node);
-        // Pop the root scope after traversal
-        scopeStack.pop();
+       
     }
 
     // Handle IN node (function or inner scope)
@@ -127,19 +199,8 @@ public class SemanticAnalyzer {
             boolean inTable = findSymbolByName(terminal); // Check if the function is already in the symbol table
             boolean declaration = "HEADER".equals(grandSymb); // Check if the grandparent is 'HEADER'
 
-           
         
-            if (inTable && declaration) {
-                throwError("Function name conflict in scope", unid); // Conflict: function already declared in this scope
-            } else if (!inTable && declaration) {
-                // Only add to the table if it's not already in the table and grandparent is 'HEADER'
-                String uniqueName = generateUniqueName(terminal);
-                String scope = scopeStack.peek();
-                scopeStack.push(uniqueName); // Push the new unique function name onto the scope stack
-                ftable.put(unid, new Symbol(uniqueName, types, scope, children,terminal)); // Add the function to the symbol table
-            } else if (terminal.equals("main")) {
-            ftable.put(unid, new Symbol(terminal, "main", scopeStack.peek(),children,terminal )); // Store 'main' in the symbol table
-        } 
+   
     }
     else if (isToken(terminal) && !isKeyword(terminal)) {
         try {
@@ -153,30 +214,30 @@ public class SemanticAnalyzer {
             boolean global = grandSymb.equals("GLOBVARS");
             
             boolean parameter = grandSymb.equals("HEADER");
-            boolean sameScope = findSymbolByNameInScope(terminal, scopeStack.peek());
 
                  for (String child : childList) {
                 // Check your condition (e.g., if the child contains "special")
              
             if (parameter) {
                 temp = getChildren(child);
-               
+                types = "parameter";
                 
             }
-             
-            }
+                if (getSymbolByUNID(child).equals("VNAME") ) {
+                    // Add to childlist if condition is met
+                    
+                    temp = getChildren(child);
+                    children.add(getSymbolByUNID(temp.get(0)));
+                }
 
-            if (sameScope && (local || global)) {
-                // If sameScope is true and grandparent is either "LOCVARS" or "GLOBVARS", raise an error
-                throwError("Variable name conflict in scope", unid); // Raise a variable name conflict
-            } else {
-                // If no conflict, add the new variable to the symbol table
-                if (local || global || parameter) {
-                String uniqueName = generateUniqueName(terminal);
-             
-                vtable.put(unid, new Symbol(uniqueName, "", scopeStack.peek(), terminal)); // Store variable in the symbol table
+                if (getSymbolByUNID(child).equals("VTYP")) {
+                    //System.out.println(getSymbolByUNID(child));
+                    // Add to childlist if condition is met
+                    temp = getChildren(child);
+                    types = getSymbolByUNID(temp.get(0));
+                }
             }
-        }
+        
         } catch (Exception e) {
             // Handle any exceptions
             e.printStackTrace(); // Log or handle exceptions as necessary
@@ -227,16 +288,7 @@ public class SemanticAnalyzer {
 
     
 
-    // Helper method to generate unique names
-    private String generateUniqueName(String baseName) {
-       
-        if (isFunction(baseName)){
-            return "f" + (uniqueCounterFunction++);
-        }
-        else return "v" + (uniqueCounterVariable++);
-
-      
-    }
+ 
 
     // Helper method to get text content from an element by tag name
     private String getTextContent(Node node, String tagName) {
@@ -264,80 +316,6 @@ public class SemanticAnalyzer {
         return isKeyword(terminal) || isVariable(terminal);
     }
 
-    // Helper method to throw an error
-    private void throwError(String message, String unid) {
-        errors.add("Error at " + unid + ": " + message);
-    }
-
-    // Method to print the symbol table in a table format
-    private void printSymbolTables() {
-        printVTable();
-        System.out.println();
-        printFTable();
-    }
-
-    // Method to print vtable (Variable Table)
-private void printVTable() {
-    System.out.println("Variable Table:");
-    // Print the table headers for variables
-    System.out.printf("%-10s %-20s %-15s %-10s %-15s%n", "ID", "Symbol", "Type", "Scope", "Unique Name");
-    System.out.println("--------------------------------------------------------------------------");
-
-    // Loop through the vtable and print each entry
-    for (Map.Entry<String, Symbol> entry : vtable.entrySet()) {
-        Symbol symbol = entry.getValue();
-        System.out.printf("%-10s %-20s %-15s %-10s %-15s%n",
-                entry.getKey(),         // ID
-                symbol.getSymb(),       // Symbol
-                symbol.getType(),       // Type
-                symbol.getScope(),      // Scope
-                symbol.getName());      // Unique Name
-    }
-}
-
-// Method to print ftable (Function Table)
-private void printFTable() {
-    System.out.println("Function Table:");
-    // Print the table headers for functions
-    System.out.printf("%-10s %-20s %-15s %-10s %-15s %-15s %-15s%n", 
-                      "ID", "Symbol", "Type", "Scope", "Unique Name", "Return Type", "Parameters");
-    System.out.println("-------------------------------------------------------------------------------------");
-
-    // Loop through the ftable and print each entry
-    for (Map.Entry<String, Symbol> entry : ftable.entrySet()) {
-        Symbol symbol = entry.getValue();
-        
-        // Get the return type and parameters
-       // String returnType = symbol.getReturnType();  // Assuming getReturnType exists
-        List<String> parameters = symbol.getParameters(); // Assuming getParameters returns a List<String>
-        String returnType ="";
-        // Join parameters into a single string separated by commas
-        String parameterString = String.join(", ", parameters);
-
-        // Print the function details including parameters as a single string
-        System.out.printf("%-10s %-20s %-15s %-10s %-15s %-15s %-15s%n",
-                entry.getKey(),         // ID
-                symbol.getSymb(),       // Symbol
-                symbol.getType(),       // Type
-                symbol.getScope(),      // Scope
-                symbol.getName(),       // Unique Name
-                returnType,             // Return Type
-                parameterString);       // Function Parameters (joined as a single string)
-    }
-}
-
-
-    // Method to print errors
-    private void printErrors() {
-        if (errors.isEmpty()) {
-            System.out.println("No semantic errors found.");
-        } else {
-            System.out.println("Semantic Errors:");
-            for (String error : errors) {
-                System.out.println(error);
-            }
-        }
-    }
 
 // Method to find a symbol by name in either vtable or ftable
 public boolean findSymbolByName(String name) {
@@ -361,27 +339,8 @@ private boolean findSymbolInTable(Map<String, Symbol> table, String name) {
     return false; // Return false if no symbol with the name is found
 }
 
-// Method to find a symbol by name in a specific scope (for both vtable and ftable)
-private boolean findSymbolByNameInScope(String name, String currentScope) {
-    // Search in vtable (variable table)
-    if (findSymbolInScopeInTable(vtable, name, currentScope)) {
-        return true;
-    }
 
-    // Search in ftable (function table)
-    return findSymbolInScopeInTable(ftable, name, currentScope);
-}
 
-// Helper method to search a symbol by name in a specific scope within a table
-private boolean findSymbolInScopeInTable(Map<String, Symbol> table, String name, String currentScope) {
-    for (Map.Entry<String, Symbol> entry : table.entrySet()) {
-        Symbol symbol = entry.getValue();
-        if (symbol.getSymb().equals(name) && symbol.getScope().equals(currentScope)) {
-            return true; // Name conflict found in the same scope
-        }
-    }
-    return false; // No conflict in the current scope
-}
 
     private String getSymbolByUNID(String UNID) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -502,9 +461,5 @@ private boolean findSymbolInScopeInTable(Map<String, Symbol> table, String name,
         return builder.parse(xmlFile);
     }
 
-    // public static void main(String[] args) {
-    //     SemanticAnalyzer analyzer = new SemanticAnalyzer();
-    //     File xmlFile = new File("syntax_tree.xml"); // Replace with your XML file path
-    //     analyzer.analyze(xmlFile);
-    // }
+
 }
