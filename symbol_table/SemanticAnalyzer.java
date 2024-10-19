@@ -19,6 +19,7 @@ public class SemanticAnalyzer {
     // Counter for generating unique names
     private int uniqueCounterVariable = 0;
     private int uniqueCounterFunction = 0;
+    
     private static File xmlfile ;
 
     // Method to analyze the syntax tree
@@ -502,15 +503,15 @@ private boolean findSymbolInScopeInTable(Map<String, Symbol> table, String name,
         return children; // Return list of children UNIDs
     }
 
+
+
+
+
     private static Document parseXML(File xmlFile) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         return builder.parse(xmlFile);
     }
 
-    // public static void main(String[] args) {
-    //     SemanticAnalyzer analyzer = new SemanticAnalyzer();
-    //     File xmlFile = new File("syntax_tree.xml"); // Replace with your XML file path
-    //     analyzer.analyze(xmlFile);
-    // }
+  
 }
