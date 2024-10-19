@@ -5,6 +5,7 @@ import org.w3c.dom.*;
 import javax.xml.parsers.*;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class TypeChecker {
@@ -12,89 +13,168 @@ public class TypeChecker {
     private Map<String, Symbol> vtable ;
     private Map<String, Symbol> ftable ;
     private static File xmlfile ;
-    public TypeChecker() {
+    public TypeChecker( File xmlfile ,Map<String, Symbol> vtable ,Map<String, Symbol> ftable) {
+        this.xmlfile = xmlfile;
+        this.ftable = ftable;
+        this.vtable = vtable;
 
     }
     
  
-    public boolean typeCheck(String symbol){
-        switch (symbol) {
-            case "PROG":
-                return typeCheck("GLOBVARS") && typeCheck("ALGO") && typeCheck("FUNCTIONS");
-            
-            case "GLOBVARS": //both cases
+    public boolean typeChecker(Node node){
+
+        //getChildren
+
+        try {
+            String unid = getTextContent(node, "UNID");
+            List<String> children = getChildren(unid);
+            String symbol = getSymbol(node);
+
+            System.out.println(unid + ": " + symbol );
+
+            List<Node> studentInnerNodes = getChildrenNodes(node) ;
+              List<Node> innerNodesOnly = studentInnerNodes.stream()
+                                             .filter(this::isInnerNode)
+                                             .collect(Collectors.toList());
+
+                                             System.out.println("Inner nodes only:");
+                                             for (Node innerNode : innerNodesOnly) {
+                                                 System.out.println(innerNode);
+                                             }
+                             
+                                             for (Node studentNode : innerNodesOnly) {
+                                                 // Debugging: Print out the studentNode before fetching its symbol
+                                                 System.out.println("Processing inner node: " + studentNode);
+                             
+                                                 // Fetch and print the symbol for the current studentNode
+                                                 symbol = getSymbol(studentNode);
+                             
+                                                 // Debugging: Print the fetched symbol
+                                                 System.out.println("Fetched symbol: " + symbol);
+                             
+                                                 // If the symbol is null or empty, print a warning
+                                                 if (symbol == null || symbol.isEmpty()) {
+                                                     System.out.println("Warning: Symbol is null or empty for node: " + studentNode);
+                                                                                        }                                       }
+
+            switch (symbol) {
+                case "PROG":
+                System.out.println("Reached case 'PROG'");
+                boolean allChecksPass = true;
+        
+                // Debugging: Print the number of studentInnerNodes
+                System.out.println("Number of studentInnerNodes: " + studentInnerNodes.size());
+        
+                for (Node studentNode : studentInnerNodes) {
+                    // Debugging: Print out the studentNode before fetching its symbol
+                    System.out.println("Processing student node: " + studentNode);
+        
+                    // Fetch and print the symbol for the current studentNode
+                    symbol = getSymbol(studentNode);
+        
+                    // Debugging: Print the fetched symbol
+                    System.out.println("Fetched symbol: " + symbol);
+        
+                    // If the symbol is null or empty, print a warning
+                    if (symbol == null || symbol.isEmpty()) {
+                        System.out.println("Warning: Symbol is null or empty for node: " + studentNode);
+                    }
+        
+                    // Call typeChecker and check if it returns false
+                    if (!typeChecker(studentNode)) {
+                        allChecksPass = false;
+                        break;
+                    }
+                }
+        
+                // Debugging: Final result of all checks
+                System.out.println("All checks pass: " + allChecksPass);
+        
+                return allChecksPass;
+        
+               
+                case "GLOBVARS": //both cases
+                    return false;
+                
+                case "ALGO":
+                    // return typeCheck("INSTRUC");
+                    return true;
+                case "INSTRUC": ///add both cases
+    
+                    return false;
+    
+                case "COMMAND": //handle all the command 
+                    return false;
+    
+                case "ATOMIC": //handle atomic
+                    return false;
+    
+                case "ASSIGN":  //handle the implementation
+                    return false;
+    
+                case "TERM": // handle the cases 
+                    return false;
+    
+                case "CALL":
+                    return false;
+    
+                case "OP": //HANDLE BOTH unop
+                    return false;
+    
+                case "ARG":
+                    return false;
+                case "UNOP": 
+                    return false;
+                case "BINOP":
+                    return false;
+                case "BRANCH":
+                    return false;
+                case "COND":
+                    return false;
+                case "SIMPLE" :
+                    return false;
+                case "COMPOSITE":
+                    return false;
+                
+                case "FNAME":
                 return false;
-            
-            case "ALGO":
-                return typeCheck("INSTRUC");
-            case "INSTRUC": ///add both cases
-
+    
+                case "FUNCTIONS":
                 return false;
-
-            case "COMMAND": //handle all the command 
+    
+                case "DECL":
+                return false ;
+    
+                case "HEADER":
                 return false;
-
-            case "ATOMIC": //handle atomic
+    
+                case "FTYP":
                 return false;
-
-            case "ASSIGN":  //handle the implementation
+    
+                case "BODY":
                 return false;
-
-            case "TERM": // handle the cases 
+    
+                case "PROLOG":
                 return false;
-
-            case "CALL":
+    
+                case "EPILOG":
                 return false;
-
-            case "OP": //HANDLE BOTH unop
+    
+                case "LOCVARS":
                 return false;
-
-            case "ARG":
-                return false;
-            case "UNOP": 
-                return false;
-            case "BINOP":
-                return false;
-            case "BRANCH":
-                return false;
-            case "COND":
-                return false;
-            case "SIMPLE" :
-                return false;
-            case "COMPOSITE":
-                return false;
-            
-            case "FNAME":
-            return false;
-
-            case "FUNCTIONS":
-            return false;
-
-            case "DECL":
-            return false ;
-
-            case "HEADER":
-            return false;
-
-            case "FTYP":
-            return false;
-
-            case "BODY":
-            return false;
-
-            case "PROLOG":
-            return false;
-
-            case "EPILOG":
-            return false;
-
-            case "LOCVARS":
-            return false;
-
-            case "SUBFUNCS":
-             return typeCheck("FUNCTIONS");        
-
+    
+                case "SUBFUNCS":
+                //  return typeCheck("FUNCTIONS");   
+                return false;     
+    
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
         }
+   
+
+
+      
         return false;
 
     }
@@ -111,7 +191,8 @@ public class TypeChecker {
 
             // Start analyzing from the <ROOT> node
             Element root = (Element) doc.getElementsByTagName("ROOT").item(0);
-            traverseNode(root);
+          boolean tree  = typeChecker(root);
+          System.out.println(tree);
 
 
         } catch (Exception e) {
@@ -120,40 +201,114 @@ public class TypeChecker {
     }
 
     // Recursive function to traverse the tree and enforce semantic rules
-    private void traverseNode(Node node) {
+    private boolean typeCheck(Node node) {
         String nodeName = node.getNodeName().trim();
-
+     
         switch (nodeName) {
             case "ROOT":
-                handleRootNode(node);
-                break;
+            return typeCheckRootNode(node);
 
-            case "IN":
-                handleInNode(node);
-                break;
+        case "IN":
+            return typeCheckInNode(node);
 
-            case "LEAF":
-                handleLeafNodes(node);
-                break;
+        case "LEAF":
+            return typeCheckLeafNode(node);
         }
+        return false;
     }
 
     // Handle ROOT node
-    private void handleRootNode(Node node) {
-        processChildren(node);
-       
+    private boolean typeCheckRootNode(Node node) {
+        String nodeName = node.getNodeName().trim();
+        String symb = getSymbol(node);
+        // System.out.println(symb);
+
+        NodeList childIDs = ((Element) node).getElementsByTagName("CHILDREN").item(0).getChildNodes();
+        NodeList innerNodes = ((Element) node.getOwnerDocument().getElementsByTagName("INNERNODES").item(0)).getElementsByTagName("IN");
+
+        for (int i = 0; i < childIDs.getLength(); i++) {
+            if (childIDs.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                String childID = childIDs.item(i).getTextContent().trim();
+
+                for (int j = 0; j < innerNodes.getLength(); j++) {
+                    Element innerNode = (Element) innerNodes.item(j);
+                    String id = getTextContent(innerNode, "UNID");
+                    if (id.equals(childID)) {
+                       return typeCheck(innerNode);
+                        
+                    }
+                }
+            } 
     }
 
+    return false;
+    }
+
+
+    private boolean isLeafNode(Node node) {
+        NodeList children = ((Element) node).getElementsByTagName("CHILDREN").item(0).getChildNodes();
+        return children.getLength() == 0;
+    }
+    
+    private boolean isInnerNode(Node node) {
+        return !isLeafNode(node);
+    }
+    
+  
     // Handle IN node (function or inner scope)
-    private void handleInNode(Node node) {
-        // String unid = getTextContent(node, "UNID");
-        // String nonTerminal = getTextContent(node, "SYMB");
-            processChildren(node);
+    private boolean typeCheckInNode(Node node) {
+
+           return processChildren(node);
         
     }
 
+    private List<Node> getChildrenNodes(Node node) {
+        List<Node> childrenNodes = new ArrayList<>();
+    
+        NodeList childIDs = ((Element) node).getElementsByTagName("CHILDREN").item(0).getChildNodes();
+        NodeList innerNodes = ((Element) node.getOwnerDocument().getElementsByTagName("INNERNODES").item(0)).getElementsByTagName("IN");
+        NodeList leafNodes = ((Element) node.getOwnerDocument().getElementsByTagName("LEAFNODES").item(0)).getElementsByTagName("LEAF");
+    
+        for (int i = 0; i < childIDs.getLength(); i++) {
+            if (childIDs.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                String childID = childIDs.item(i).getTextContent().trim();
+    
+                for (int j = 0; j < innerNodes.getLength(); j++) {
+                    Element innerNode = (Element) innerNodes.item(j);
+                    String id = getTextContent(innerNode, "UNID");
+                    if (id.equals(childID)) {
+                        childrenNodes.add(innerNode);
+                        break;
+                    }
+                }
+    
+                for (int j = 0; j < leafNodes.getLength(); j++) {
+                    Element leafNode = (Element) leafNodes.item(j);
+                    String id = getTextContent(leafNode, "UNID");
+                    if (id.equals(childID)) {
+                        childrenNodes.add(leafNode);
+                        break;
+                    }
+                }
+            }
+        }
+    
+        return childrenNodes;
+    }
+    
+    
+    private void addChildrenToList(List<Node> result, NodeList children) {
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (child.getNodeType() == Node.ELEMENT_NODE) {
+                result.add(child);
+            }
+        }
+    }
+
+
     // Handle LEAF nodes (variables or terminal symbols)
-    private void handleLeafNodes(Node node) {
+    private boolean typeCheckLeafNode(Node node) {
         String terminal = getTextContent(node, "TERMINAL");
         //String parent = getTextContent(node, "PARENT");
         String unid = getTextContent(node, "UNID");
@@ -243,20 +398,15 @@ public class TypeChecker {
             e.printStackTrace(); // Log or handle exceptions as necessary
         }
 
-
-
-
-
-        
-
    
     }
+    return false;
      
     }
     
     
     // Helper method to process child nodes
-    private void processChildren(Node node) {
+    private boolean processChildren(Node node) {
         NodeList childIDs = ((Element) node).getElementsByTagName("CHILDREN").item(0).getChildNodes();
         NodeList innerNodes = ((Element) node.getOwnerDocument().getElementsByTagName("INNERNODES").item(0)).getElementsByTagName("IN");
         NodeList leafNodes = ((Element) node.getOwnerDocument().getElementsByTagName("LEAFNODES").item(0)).getElementsByTagName("LEAF");
@@ -269,8 +419,8 @@ public class TypeChecker {
                     Element innerNode = (Element) innerNodes.item(j);
                     String id = getTextContent(innerNode, "UNID");
                     if (id.equals(childID)) {
-                        traverseNode(innerNode);
-                        break;
+                       return typeCheck(innerNode);
+                        
                     }
                 }
 
@@ -278,17 +428,14 @@ public class TypeChecker {
                     Element leafNode = (Element) leafNodes.item(j);
                     String id = getTextContent(leafNode, "UNID");
                     if (id.equals(childID)) {
-                        traverseNode(leafNode);
-                        break;
+                       return typeCheck(leafNode);
+                    
                     }
                 }
             }
         }
+        return false;
     }
-
-    
-
- 
 
     // Helper method to get text content from an element by tag name
     private String getTextContent(Node node, String tagName) {
@@ -454,6 +601,27 @@ private boolean findSymbolInTable(Map<String, Symbol> table, String name) {
 
         return children; // Return list of children UNIDs
     }
+
+    private String getSymbol(Node rootNode) {
+        // Ensure the rootNode is an Element and it's the expected ROOT node
+        if (rootNode.getNodeType() == Node.ELEMENT_NODE) {
+            Element rootElement = (Element) rootNode;
+            
+            // Try to get the SYMB tag first
+            NodeList symbNodes = rootElement.getElementsByTagName("SYMB");
+            if (symbNodes.getLength() > 0) {
+                return symbNodes.item(0).getTextContent().trim(); // Return the symbol (SYMB in this case)
+            }
+            
+            // If SYMB is not found, try to get the TERMINAL tag
+            NodeList terminalNodes = rootElement.getElementsByTagName("TERMINAL");
+            if (terminalNodes.getLength() > 0) {
+                return terminalNodes.item(0).getTextContent().trim(); // Return the symbol (TERMINAL in this case)
+            }
+        }
+        return null; // Return null if neither SYMB nor TERMINAL is found
+    }
+    
 
     private static Document parseXML(File xmlFile) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

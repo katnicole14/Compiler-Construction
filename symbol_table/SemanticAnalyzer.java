@@ -63,6 +63,12 @@ public class SemanticAnalyzer {
         }
     }
 
+public Map<String, Symbol> getVtable(){
+    return vtable;
+}
+public Map<String, Symbol> getFtable(){
+    return ftable;
+}
     // Handle ROOT node
     private void handleRootNode(Node node) {
         // Push the root scope (main program scope) onto the stack
