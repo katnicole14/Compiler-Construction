@@ -20,154 +20,214 @@ public class TypeChecker {
 
     }
     
- 
-    public boolean typeChecker(Node node) {
-        try {
-            String unid = getTextContent(node, "UNID");
-            List<String> children = getChildren(unid);
-            String symbol = getSymbol(node);
-    
-            System.out.println(unid + ": " + symbol);
-    
-            List<Node> studentInnerNodes = getChildrenNodes(node);
-    
-            switch (symbol) {
-                case "PROG":
-                    System.out.println("Reached case 'PROG'");
-                    boolean allChecksPass = true;
-    
-                    // Filter to get only inner nodes
-                    List<Node> innerNodesOnly = studentInnerNodes.stream()
-                                                                 .filter(this::isInnerNode)
-                                                                 .collect(Collectors.toList());
-    
-                    boolean globVarsCheck = false;
-                    boolean algoCheck = false;
-                    boolean functionsCheck = false;
-    
-                    for (Node studentNode : innerNodesOnly) {
-          
-    
-                        // Fetch and print the symbol for the current studentNode
-                        String studentSymbol = getSymbol(studentNode);
-    
-                        // Debugging: Print the fetched symbol
-                        System.out.println("Fetched symbol: " + studentSymbol);
-    
-                        // If the symbol is null or empty, print a warning
-                        if (studentSymbol == null || studentSymbol.isEmpty()) {
-                            System.out.println("Warning: Symbol is null or empty for node: " + studentNode);
-                            continue;
-                        }
-    
-                        // Check the type of the inner node
-                        switch (studentSymbol) {
-                            case "GLOBVARS":
-                                globVarsCheck = typeChecker(studentNode);
-                                break;
-                            case "ALGO":
-                                algoCheck = typeChecker(studentNode);
-                                break;
-                            case "FUNCTIONS":
-                                functionsCheck = typeChecker(studentNode);
-                                break;
-                            default:
-                                System.out.println("Unknown symbol: " + studentSymbol);
-                                allChecksPass = false;
-                                break;
-                        }
-    
-                        if (!allChecksPass) {
+ public boolean typeChecker(Node node) {
+    try {
+        String unid = getTextContent(node, "UNID");
+        List<String> children = getChildren(unid);
+        String symbol = getSymbol(node);
+
+        System.out.println("[DEBUG] Processing node with UNID: " + unid + ", Symbol: " + symbol);
+
+        List<Node> studentInnerNodes = getChildrenNodes(node);
+        System.out.println("[DEBUG] Number of child nodes: " + studentInnerNodes.size());
+
+        switch (symbol) {
+            case "PROG":
+                System.out.println("[DEBUG] Entered 'PROG' case");
+
+                boolean allChecksPass = true;
+
+                // Filter to get only inner nodes
+                List<Node> innerNodesOnly = studentInnerNodes.stream()
+                                                             .filter(this::isInnerNode)
+                                                             .collect(Collectors.toList());
+                System.out.println("[DEBUG] Number of inner nodes: " + innerNodesOnly.size());
+
+                boolean globVarsCheck = false;
+                boolean algoCheck = false;
+                boolean functionsCheck = false;
+
+                for (Node studentNode : innerNodesOnly) {
+                    String studentSymbol = getSymbol(studentNode);
+                    System.out.println("[DEBUG] Processing inner node with Symbol: " + studentSymbol);
+
+                    if (studentSymbol == null || studentSymbol.isEmpty()) {
+                        System.out.println("[WARNING] Inner node symbol is null or empty");
+                        continue;
+                    }
+
+                    // Check the type of the inner node
+                    switch (studentSymbol) {
+                        case "GLOBVARS":
+                            System.out.println("[DEBUG] Entering 'GLOBVARS' case for symbol: " + studentSymbol);
+                            globVarsCheck = typeChecker(studentNode);
                             break;
-                        }
+                        case "ALGO":
+                            System.out.println("[DEBUG] Entering 'ALGO' case for symbol: " + studentSymbol);
+                            algoCheck = typeChecker(studentNode);
+                            break;
+                        case "FUNCTIONS":
+                            System.out.println("[DEBUG] Entering 'FUNCTIONS' case for symbol: " + studentSymbol);
+                            functionsCheck = typeChecker(studentNode);
+                            break;
+                        default:
+                            System.out.println("[ERROR] Unknown symbol encountered: " + studentSymbol);
+                            allChecksPass = false;
+                            break;
                     }
-    
-                    // Combine the results of the checks
-                    allChecksPass = globVarsCheck && algoCheck && functionsCheck;
-    
-                    // Debugging: Final result of all checks
-                    System.out.println("All checks pass: " + allChecksPass);
-    
-                    return allChecksPass;
-    
+
+                    if (!allChecksPass) {
+                        System.out.println("[DEBUG] Exiting loop as a check failed for symbol: " + studentSymbol);
+                        break;
+                    }
+                }
+
+                // Combine the results of the checks
+                allChecksPass = globVarsCheck && algoCheck && functionsCheck;
+                System.out.println("[DEBUG] Final check results: globVarsCheck=" + globVarsCheck + 
+                                   ", algoCheck=" + algoCheck + ", functionsCheck=" + functionsCheck +
+                                   ", allChecksPass=" + allChecksPass);
+
+                return allChecksPass;
+
                 case "GLOBVARS":
-                    // Base case: no children
-                    if (studentInnerNodes.isEmpty()) {
-                        return true;
+                System.out.println("[DEBUG] Entered 'GLOBVARS' case");
+            
+                // Base case: no children
+                if (studentInnerNodes.isEmpty()) {
+                    System.out.println("[DEBUG] No child nodes under 'GLOBVARS'");
+                    return true;
+                }
+            
+                String type = ""; // Initialize with an empty string or a suitable default value
+                String id = "";   // Initialize with an empty string or a suitable default value
+            
+                // Recursive case: process GLOBVARS1
+                for (Node childNode : studentInnerNodes) {
+                    String childSymbol = getSymbol(childNode);
+                    System.out.println("childdddd: " + childSymbol);
+                    System.out.println("[DEBUG] Processing child node in 'GLOBVARS' with Symbol: " + childSymbol);
+            
+                    if ("VTYP".equals(childSymbol)) {
+                        List<Node> kid = getChildrenNodes(childNode);
+                        System.out.println("[DEBUG] Processing first child of VTYP: " + getSymbol(kid.get(0)));
+            
+                        type = getTextContentSafe(kid.get(0), "TERMINAL");
+                        System.out.println("[DEBUG] VTYP detected with type: " + type + ", id: " + id);
+            
+                        // Recursively type check GLOBVARS2
+                       // return typeChecker(childNode);
                     }
-    
-                    // Recursive case: process GLOBVARS1
-                    for (Node childNode : studentInnerNodes) {
-                        String childSymbol = getSymbol(childNode);
-    
-                        if ("VTYP".equals(childSymbol)) {
-                            String type = getTextContentSafe(childNode, "VTYP");
-                            String id = getTextContentSafe(childNode, "VNAME");
-    
-                            // Update the symbol table
-                            updateSymbolTable(id, type);
-    
-                            // Recursively type check GLOBVARS2
-                            return typeChecker(childNode);
-                        }
+            
+                    if ("VNAME".equals(childSymbol)) {
+                        id = getTextContentSafe(childNode, "ID");
+                      
                     }
-                    return false;
-    
-                case "ALGO":
-                    // Process the INSTRUC child node
-                    for (Node childNode : studentInnerNodes) {
-                        String childSymbol = getSymbol(childNode);
-    
-                        if ("INSTRUC".equals(childSymbol)) {
-                            return typeChecker(childNode);
-                        }
+                }
+                System.out.println("[DEBUG] VNAME detected with id: " + id);
+                // Only update symbol table if both type and id are non-empty
+                if (!type.isEmpty() && !id.isEmpty()) {
+                    updateSymbolTable(id, type);
+                    System.out.println("[DEBUG] Symbol table updated with id=" + id + ", type=" + type);
+                    return true;
+                }
+            
+                System.out.println("[DEBUG] No valid 'VTYP' or 'VNAME' found in child nodes of 'GLOBVARS'");
+                return false;
+
+            case "ALGO":
+                System.out.println("[DEBUG] Entered 'ALGO' case");
+
+                // Process the INSTRUC child node
+                for (Node childNode : studentInnerNodes) {
+                    String childSymbol = getSymbol(childNode);
+                    System.out.println("[DEBUG] Processing child node in 'ALGO' with Symbol: " + childSymbol);
+
+                    if ("INSTRUC".equals(childSymbol)) {
+                        System.out.println("[DEBUG] 'INSTRUC' found, recursively calling typeChecker");
+                        return typeChecker(childNode);
                     }
-                    return false;
+                }
+                System.out.println("[DEBUG] No 'INSTRUC' found in child nodes of 'ALGO'");
+                return false;
     
                 case "INSTRUC":
                     // Base case: no children
                     if (studentInnerNodes.isEmpty()) {
+                        System.out.println("No children found in 'ALGO'");
                         return true;
                     }
     
                     // Recursive case: process COMMAND and INSTRUC2
                     for (Node childNode : studentInnerNodes) {
                         String childSymbol = getSymbol(childNode);
-    
+                        
+                        // Debugging statement for the child node being processed
+                        System.out.println("[DEBUG] Processing child node with Symbol: " + childSymbol);
+                    
                         if ("COMMAND".equals(childSymbol)) {
+                            // Debugging statement for when COMMAND is detected
+                            System.out.println("[DEBUG] 'COMMAND' detected, processing command node.");
+                    
                             boolean commandCheck = typeChecker(childNode);
+                            // Debugging statement for the result of commandCheck
+                            System.out.println("[DEBUG] Result of commandCheck: " + commandCheck);
+                    
                             boolean instruc2Check = typeChecker(childNode); // Assuming INSTRUC2 is the next sibling
+                            // Debugging statement for the result of instruc2Check
+                            System.out.println("[DEBUG] Result of instruc2Check: " + instruc2Check);
+                    
                             return commandCheck && instruc2Check;
                         }
                     }
+                    
+                    // Debugging statement for when no COMMAND is found
+                    System.out.println("[DEBUG] No 'COMMAND' found in child nodes.");
                     return false;
+                    
     
                 case "COMMAND":
                     // Handle different COMMAND cases
+                    System.out.println("[DEBUG] Entered 'COMMAND' case");
+
                     for (Node childNode : studentInnerNodes) {
                         String childSymbol = getSymbol(childNode);
-    
+                        System.out.println("[DEBUG Command] Processing child node with Symbol: " + childSymbol);
                         switch (childSymbol) {
                             case "skip":
+                            System.out.println("[DEBUG] 'skip' command detected");
+                                return true;
                             case "halt":
+                            System.out.println("[DEBUG] 'halt' command detected");
                                 return true;
     
                             case "print":
-                                Node atomicNode = getChildNodeByTagName(childNode, "ATOMIC");
-                                if (atomicNode != null) {
-                                    char atomicType = typeof(getTextContentSafe(atomicNode, "ATOMIC"));
-                                    return atomicType == 'n' || atomicType == 't';
-                                }
-                                return false;
+                            System.out.println("[DEBUG] 'print' command detected");
+                            Node atomicNode = getChildNodeByTagName(childNode, "ATOMIC");
+                            if (atomicNode != null) {
+                                char atomicType = typeof(getTextContentSafe(atomicNode, "ATOMIC"));
+                                // Debugging statement for atomic type check
+                                System.out.println("[DEBUG] Atomic type for 'print': " + atomicType);
+                                return atomicType == 'n' || atomicType == 't';
+                            }
+                            // Debugging statement if atomicNode is null
+                            System.out.println("[DEBUG] No ATOMIC node found for 'print' command");
+                            return false;
     
                             case "return":
-                                Node returnAtomicNode = getChildNodeByTagName(childNode, "ATOMIC");
-                                if (returnAtomicNode != null) {
-                                    char returnType = typeof(getTextContentSafe(returnAtomicNode, "ATOMIC"));
-                                    char functionType = findFunctionType(childNode);
-                                   return returnType == functionType && functionType == 'n';
-                                }
-                                return false;
+                            System.out.println("[DEBUG] 'return' command detected");
+                            Node returnAtomicNode = getChildNodeByTagName(childNode, "ATOMIC");
+                            if (returnAtomicNode != null) {
+                                char returnType = typeof(getTextContentSafe(returnAtomicNode, "ATOMIC"));
+                                char functionType = findFunctionType(childNode);
+                                // Debugging statements for return type and function type checks
+                                System.out.println("[DEBUG] Return type for 'return': " + returnType);
+                                System.out.println("[DEBUG] Function type for 'return': " + functionType);
+                                return returnType == functionType && functionType == 'n';
+                            }
+                            // Debugging statement if returnAtomicNode is null
+                            System.out.println("[DEBUG] No ATOMIC node found for 'return' command");
+                            return false;
     
                                 case "ASSIGN":
                                 // Handle ASSIGN cases
@@ -208,14 +268,15 @@ public class TypeChecker {
                                     char atomic3Type = typeof(getTextContentSafe(atomic3Node, "ATOMIC3"));
                             
                                     if (atomic1Type == 'n' && atomic2Type == 'n' && atomic3Type == 'n') {
-                                       String fnameType = getTypeFromSymbolTable(getTextContentSafe(fnameNode, "FNAME"));
-                                        return typeof(fnameNode) == fnameType.charAt(0);
+                                        String fname = getTextContentSafe(fnameNode, "FNAME");
+                                        String fnameType = getTypeFromSymbolTable(fname);
+                                        return fnameType != null && typeof(fnameType) == 'n'; // Assuming functions return 'n'
                                     } else {
                                         return false;
                                     }
                                 }
                                 return false;
-                            
+                                                
     
                             case "BRANCH":
                                 return typeChecker(childNode);
@@ -373,11 +434,11 @@ public class TypeChecker {
                     String childSymbol = getSymbol(childNode);
             
                     if ("SIMPLE".equals(childSymbol)) {
-
-                        
-                        return typeof(childNode) == typeof(getTextContentSafe(childNode, "SIMPLE"));
+                        char simpleType = typeof(getTextContentSafe(childNode, "SIMPLE"));
+                        return typeof("COND") == simpleType;
                     } else if ("COMPOSITE".equals(childSymbol)) {
-                        return typeof(childNode) == typeof(getTextContentSafe(childNode, "COMPOSITE"));
+                        char compositeType = typeof(getTextContentSafe(childNode, "COMPOSITE"));
+                        return typeof("COND") == compositeType;
                     }
                 }
                 return false;
@@ -582,19 +643,21 @@ public class TypeChecker {
         return nodeList.item(0);
     }
     private void updateSymbolTable(String id, String type) {
-        // Determine if the id is a variable or a function
-        if (id.startsWith("V_")) {
-            // It's a variable, update the variable table
-            Symbol symbol = new Symbol(id, type, "GLOBAL", null, "v" + vtable.size());
-            vtable.put(id, symbol);
+        System.out.println("Updating symbol for id: " + id);
+
+        // Check if the id exists in vtable or ftable
+        if (vtable.containsKey(id)) {
+            // Update the existing variable entry
+            Symbol existingVarSymbol = vtable.get(id);
+            existingVarSymbol.setType(type); // Assuming there's a setType method in Symbol
             System.out.println("Updated variable table: " + id + " -> " + type);
-        } else if (id.startsWith("F_")) {
-            // It's a function, update the function table
-            Symbol symbol = new Symbol(id, type, "GLOBAL", new ArrayList<>(), "f" + ftable.size());
-            ftable.put(id, symbol);
+            return; // Early exit after updating
+        } else if (ftable.containsKey(id)) {
+            // Update the existing function entry
+            Symbol existingFuncSymbol = ftable.get(id);
+            existingFuncSymbol.setType(type); // Assuming there's a setType method in Symbol
             System.out.println("Updated function table: " + id + " -> " + type);
-        } else {
-            System.out.println("Warning: Unknown id type for " + id);
+            return; // Early exit after updating
         }
     }
     
@@ -646,6 +709,25 @@ public class TypeChecker {
     }
 
     
+    private char findFunctionType(Node node) {
+        // Traverse up the tree to find the function scope
+        Node currentNode = node;
+        while (currentNode != null) {
+            String symbol = getSymbol(currentNode);
+            if ("FUNCTION".equals(symbol) || "DECL".equals(symbol)) {
+                // Found the function declaration, now find the FTYP node
+                Node ftypNode = getChildNodeByTagName(currentNode, "FTYP");
+                if (ftypNode != null) {
+                    return typeof(getTextContentSafe(ftypNode, "FTYP"));
+                }
+            }
+            currentNode = currentNode.getParentNode();
+        }
+        System.out.println("Warning: Function type not found for node.");
+        return 'u'; // Return 'u' for undefined if not found
+    }
+    
+
     public void typeCheckers(File xmlFile) {
         try {
             this.xmlfile = xmlFile;
@@ -802,6 +884,21 @@ private boolean findSymbolInTable(Map<String, Symbol> table, String name) {
 
         return children; // Return list of children UNIDs
     }
+
+    private Node getChildNode(Node parentNode, String tagName) {
+        if (parentNode == null) {
+            System.out.println("Warning: Parent node is null for tag: " + tagName);
+            return null;
+        }
+        Element element = (Element) parentNode;
+        NodeList nodeList = element.getElementsByTagName(tagName);
+        if (nodeList.getLength() == 0) {
+            System.out.println("Warning: No elements found for tag: " + tagName);
+            return null;
+        }
+        return nodeList.item(0);
+    }
+    
 
     private String getTypeFromSymbolTable(String name) {
         // Check in the variable table

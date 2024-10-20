@@ -38,6 +38,9 @@ public class Symbol {
     public String getSymb() {
         return symb;
     }
+    public void setType(String type){
+     this.type = type;
+    } 
   
     public List<String> getParameters(){
         return parameters;

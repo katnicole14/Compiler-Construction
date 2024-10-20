@@ -277,7 +277,7 @@ public Map<String, Symbol> getFtable(){
     }
 
     // Method to print the symbol table in a table format
-    private void printSymbolTables() {
+    public void printSymbolTables() {
         printVTable();
         System.out.println();
         printFTable();
