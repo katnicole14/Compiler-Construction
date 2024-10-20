@@ -23,14 +23,21 @@ public class TypeChecker {
  public boolean typeChecker(Node node) {
     try {
         String unid = getTextContent(node, "UNID");
-        List<String> children = getChildren(unid);
+   
         String symbol = getSymbol(node);
 
         System.out.println("[DEBUG] Processing node with UNID: " + unid + ", Symbol: " + symbol);
 
         List<Node> studentInnerNodes = getChildrenNodes(node);
         System.out.println("[DEBUG] Number of child nodes: " + studentInnerNodes.size());
+        List<Node> innerNodesOnly = studentInnerNodes.stream()
+                    .filter(this::isInnerNode)
+                    .collect(Collectors.toList());
+        List<Node> leafNodesOnly = studentInnerNodes.stream()
+                    .filter(this:: isLeafNode) 
+                    .collect(Collectors.toList());
 
+                    
         switch (symbol) {
             case "PROG":
                 System.out.println("[DEBUG] Entered 'PROG' case");
@@ -38,10 +45,7 @@ public class TypeChecker {
                 boolean allChecksPass = true;
 
                 // Filter to get only inner nodes
-                List<Node> innerNodesOnly = studentInnerNodes.stream()
-                                                             .filter(this::isInnerNode)
-                                                             .collect(Collectors.toList());
-
+    
                 
 
                 System.out.println("[DEBUG] Number of inner nodes: " + innerNodesOnly.size());
@@ -192,7 +196,8 @@ public class TypeChecker {
                 case "COMMAND":
                     // Handle different COMMAND cases
                     System.out.println("[DEBUG] Entered 'COMMAND' case");
-
+                    System.out.println("[DEBUG] Leaf Nodes:");
+                    leafNodesOnly.forEach(childNode -> System.out.println(childNode));
                     for (Node childNode : studentInnerNodes) {
                         String childSymbol = getSymbol(childNode);
                         System.out.println("[DEBUG Command] Processing child node with Symbol: " + childSymbol);
@@ -232,30 +237,11 @@ public class TypeChecker {
                             System.out.println("[DEBUG] No ATOMIC node found for 'return' command");
                             return false;
     
-                                case "ASSIGN":
+                            case "ASSIGN":
+                                System.out.println("it is case assignment");
                                 // Handle ASSIGN cases
-                                for (Node child : studentInnerNodes) {
-                                    childSymbol = getSymbol(childNode);
-                            
-                                    if ("VNAME".equals(childSymbol)) {
-                                       String vnameType = getTypeFromSymbolTable(getTextContentSafe(childNode, "VNAME"));
-                            
-                                        // Check for "< input" assignment
-                                        if ("<".equals(getTextContentSafe(child, "ASSIGN"))) {
-                                            return vnameType.equals("n");
-                                        }
-                            
-                                        // Check for "=" assignment
-                                        if ("=".equals(getTextContentSafe(child, "ASSIGN"))) {
-                                            Node termNode = getChildNodeByTagName(child, "TERM");
-                                            if (termNode != null) {
-                                               String termType = getTypeFromSymbolTable(getTextContentSafe(termNode, "TERM"));
-                                               return vnameType.equals(termType);
-                                            }
-                                        }
-                                    }
-                                }
-                                return false;
+                               
+                                return typeChecker(childNode);
                             
     
                                 case "CALL":
@@ -306,16 +292,61 @@ public class TypeChecker {
                 // Add other cases as needed
             
                 case "ASSIGN":
-                    return false;
+                for (Node childNode : studentInnerNodes) { 
+                    String childSymbol = getSymbol(childNode);
+                    System.out.println(childSymbol + " ==============="); // Debugging statement
+                    
+                    if ("input".equals(childSymbol)) {
+                        System.out.println("INPUT");
+                        List<Node> kid = getChildrenNodes(childNode);
+                        id = getTextContentSafe(childNode, "ID"); // child id
+                                  
+                        String childname = getSymbol(kid.get(0)); // child name
+                        String tableId = getIdBySymbolName(childname); // id of corresponding childname in table
+                        String vnameType = getTypeFromSymbolTable(tableId);
+                        System.out.println(childname + "^^ " + id + "^^" + vnameType + " " + tableId); // Debugging statement
+                           
+                        // Check if vnameType indicates a numeric type
+                        if (typeof(vnameType) == 'n') {
+                            System.out.println("[DEBUG] vnameType is numeric."); // Debugging statement
+                            return true; // Indicates valid assignment
+                        } else {
+                            System.out.println("[DEBUG] vnameType is not numeric."); // Debugging statement
+                            return false; 
+                        }
+                    }
+
+                    if ("TERM".equals(childSymbol)) {
+                        // System.out.println("TERM");
+                        // List<Node> kid = getChildrenNodes(childNode);
+                        // id = getTextContentSafe(childNode, "ID"); // child id
+                                  
+                        // String childname = getSymbol(kid.get(0)); // child name
+                        // String tableId = getIdBySymbolName(childname); // id of corresponding childname in table
+                        // String vnameType = getTypeFromSymbolTable(tableId);
+                        // System.out.println(childname + "^^ " + id + "^^" + vnameType + " " + tableId); // Debugging statement
+                           
+                        // // Check if vnameType indicates a numeric type
+                        // if (typeof(vnameType) == 'n') {
+                        //     System.out.println("[DEBUG] vnameType is numeric."); // Debugging statement
+                        //     return true; // Indicates valid assignment
+                        // } else {
+                        //     System.out.println("[DEBUG] vnameType is not numeric."); // Debugging statement
+                        //     return false; 
+                        // }
+                    }
+                }
+            
     
                 
-                    case "TERM":
+                case "TERM":
+                
                     // Determine the type of TERM
                     for (Node childNode : studentInnerNodes) {
                         String childSymbol = getSymbol(childNode);
                 
                         if ("ATOMIC".equals(childSymbol)) {
-                            return typeof(getTextContentSafe(childNode, "ATOMIC")) == typeof(getTextContentSafe(childNode, "ATOMIC"));
+                            typeof(getTextContentSafe(childNode, "ATOMIC"));
                         } else if ("CALL".equals(childSymbol)) {
                             return typeof(getTextContentSafe(childNode, "CALL")) == typeof(getTextContentSafe(childNode, "CALL"));
                         } else if ("OP".equals(childSymbol)) {
@@ -349,13 +380,15 @@ public class TypeChecker {
             
     
                 case "OP":
+
+                
                 // Handle OP case
                 Node unopNode = getChildNodeByTagName(node, "UNOP");
                 Node argNode = getChildNodeByTagName(node, "ARG");
             
                 if (unopNode != null && argNode != null) {
-                    char unopType = typeof(getTextContentSafe(unopNode, "UNOP"));
-                    char argType = typeof(getTextContentSafe(argNode, "ARG"));
+                    char unopType = typeof(unopNode);
+                    char argType = typeof(argNode);
             
                     if (unopType == argType) {
                         if (unopType == 'b' || unopType == 'n') {
@@ -370,9 +403,9 @@ public class TypeChecker {
                 Node arg2Node = getChildNodeByTagName(node, "ARG2");
             
                 if (binopNode != null && arg1Node != null && arg2Node != null) {
-                    char binopType = typeof(getTextContentSafe(binopNode, "BINOP"));
-                    char arg1Type = typeof(getTextContentSafe(arg1Node, "ARG1"));
-                    char arg2Type = typeof(getTextContentSafe(arg2Node, "ARG2"));
+                    char binopType = typeof(binopNode);
+                    char arg1Type = typeof(arg1Node);
+                    char arg2Type = typeof(arg2Node);
             
                     if (binopType == arg1Type && arg1Type == arg2Type) {
                         if (binopType == 'b' || binopType == 'n') {
@@ -387,17 +420,17 @@ public class TypeChecker {
             
     
                 case "ARG":
-                // Handle ARG case
-                for (Node childNode : studentInnerNodes) {
-                    String childSymbol = getSymbol(childNode);
+                // // Handle ARG case
+                // for (Node childNode : studentInnerNodes) {
+                //     String childSymbol = getSymbol(childNode);
             
-                    if ("ATOMIC".equals(childSymbol)) {
-                        return typeof(getTextContentSafe(childNode, "ATOMIC")) == typeof(getTextContentSafe(childNode, "ATOMIC"));
-                    } else if ("OP".equals(childSymbol)) {
-                        return typeof(getTextContentSafe(childNode, "OP")) == typeof(getTextContentSafe(childNode, "OP"));
-                    }
-                }
-                return false;
+                //     if ("ATOMIC".equals(childSymbol)) {
+                //         return typeof(getTextContentSafe(childNode, "ATOMIC")) == typeof(getTextContentSafe(childNode, "ATOMIC"));
+                //     } else if ("OP".equals(childSymbol)) {
+                //         return typeof(getTextContentSafe(childNode, "OP")) == typeof(getTextContentSafe(childNode, "OP"));
+                //     }
+                // }
+                // return false;
             
     
                 case "UNOP":
@@ -437,7 +470,7 @@ public class TypeChecker {
                     String childSymbol = getSymbol(childNode);
             
                     if ("SIMPLE".equals(childSymbol)) {
-                        char simpleType = typeof(getTextContentSafe(childNode, "SIMPLE"));
+                        char simpleType = typeof(childNode);
                         return typeof("COND") == simpleType;
                     } else if ("COMPOSITE".equals(childSymbol)) {
                         char compositeType = typeof(getTextContentSafe(childNode, "COMPOSITE"));
@@ -545,23 +578,20 @@ public class TypeChecker {
                     Node vname3Node = getChildNodeByTagName(node, "VNAME3");
                 
                     if (ftypNode != null && fnameNode != null && vname1Node != null && vname2Node != null && vname3Node != null) {
-                        char ftypType = typeof(getTextContentSafe(ftypNode, "FTYP"));
+                        char ftypType = typeof(ftypNode); //this should return 'v' for void
                         String fname = getTextContentSafe(fnameNode, "FNAME");
                 
                         // Update the symbol table
                         updateSymbolTable(fname, String.valueOf(ftypType));
                 
-                        char vname1Type = typeof(getTextContentSafe(vname1Node, "VNAME1"));
-                        char vname2Type = typeof(getTextContentSafe(vname2Node, "VNAME2"));
-                        char vname3Type = typeof(getTextContentSafe(vname3Node, "VNAME3"));
+                        char vname1Type = typeof(vname1Node);
+                        char vname2Type = typeof(vname2Node);
+                        char vname3Type = typeof(vname3Node);
                 
                         return ftypType == typeof(fname) && vname1Type == 'n' && vname2Type == 'n' && vname3Type == 'n';
                     }
                     return false;
                 
-                case "FTYP":
-                    return false;
-    
                     case "BODY":
                     // Process PROLOG, LOCVARS, ALGO, EPILOG, and SUBFUNCS
                     Node prologNode = getChildNodeByTagName(node, "PROLOG");
@@ -586,33 +616,33 @@ public class TypeChecker {
                     return false;
     
                 case "EPILOG":
-                    return false;
+                    return true;
     
                     case "LOCVARS":
-                    // Process VTYP and VNAME pairs
-                    Node vtyp1Node = getChildNodeByTagName(node, "VTYP1");
-                     vname1Node = getChildNodeByTagName(node, "VNAME1");
-                    Node vtyp2Node = getChildNodeByTagName(node, "VTYP2");
-                     vname2Node = getChildNodeByTagName(node, "VNAME2");
-                    Node vtyp3Node = getChildNodeByTagName(node, "VTYP3");
-                    vname3Node = getChildNodeByTagName(node, "VNAME3");
+                    // Assuming studentInnerNodes contains the variable declarations
+                    for (Node locvarNode : studentInnerNodes) {
+                        // Assuming each locvarNode has a structure like "VTYP VNAME"
+                        String vType = getSymbol(locvarNode); // Get the type symbol (e.g., VTYP)
+                        String vName = getTextContentSafe(locvarNode, "VNAME"); // Get the variable name (e.g., VNAME)
                 
-                    if (vtyp1Node != null && vname1Node != null && vtyp2Node != null && vname2Node != null && vtyp3Node != null && vname3Node != null) {
-                        char vtyp1Type = typeof(getTextContentSafe(vtyp1Node, "VTYP1"));
-                        String vname1 = getTextContentSafe(vname1Node, "VNAME1");
-                        updateSymbolTable(vname1, String.valueOf(vtyp1Type));
+                        // Get the type of the variable from the symbol table
+                        String typeId = getIdBySymbolName(vName); // Access the symbol table to get ID
+                        char tType = typeof(vType); // Get the type of the variable (e.g., 'n', 'b', etc.)
                 
-                        char vtyp2Type = typeof(getTextContentSafe(vtyp2Node, "VTYP2"));
-                        String vname2 = getTextContentSafe(vname2Node, "VNAME2");
-                        updateSymbolTable(vname2, String.valueOf(vtyp2Type));
+                        // Convert char tType to String
+                        String typeString = String.valueOf(tType);
                 
-                        char vtyp3Type = typeof(getTextContentSafe(vtyp3Node, "VTYP3"));
-                        String vname3 = getTextContentSafe(vname3Node, "VNAME3");
-                        updateSymbolTable(vname3, String.valueOf(vtyp3Type));
+                        // Link the type to the symbol table
+                        System.out.println("[DEBUG] Linking type: " + typeString + " with ID: " + typeId);
                 
-                        return vtyp1Type == typeof(vname1) && vtyp2Type == typeof(vname2) && vtyp3Type == typeof(vname3);
+                        // Update the symbol table with the variable name's type
+                        updateSymbolTable(typeId, typeString); // Pass the type as a String
+                        
+                        // Print debug information
+                        System.out.println("[DEBUG] typeof(" + vName + ") = " + typeString);
                     }
-                    return false;
+                    return true; // Indicates successful type checking of LOCVARS
+                
                 
     
                     case "SUBFUNCS":
@@ -664,6 +694,167 @@ public class TypeChecker {
         }
     }
     
+    private char typeof(Node node) {
+        try {
+            String unid = getTextContent(node, "UNID"); 
+            List<Node> children = getChildrenNodes(node);
+            String symbol = getSymbol(node);
+    
+            System.out.println("[DEBUG] Processing node with UNID: " + unid + ", Symbol: " + symbol);
+    
+            switch (symbol) {
+                case "TERM":
+                    System.out.println("[DEBUG] Node is of type TERM");
+                    
+                    // Loop through the children
+                    for (Node child : children) {
+                        String childSymbol = getSymbol(child);
+                        System.out.println("[DEBUG] Processing child node with symbol: " + childSymbol);
+                        
+                        // Check if child symbol is "atomic"
+                        if ("ATOMIC".equals(childSymbol)) {
+                            // Call typeof for the atomic child
+                            char atomicType = typeof(child);
+                            System.out.println("[DEBUG] Atomic type: " + atomicType);
+                            return atomicType; // return or process accordingly
+                        }
+    
+                        // Check if child symbol is "CALL"
+                        if ("CALL".equals(childSymbol)) {
+                            // Call typeof for the CALL child
+                            char callType = typeof(child);
+                            System.out.println("[DEBUG] CALL type: " + callType);
+                            return callType; // return or process accordingly
+                        }
+                        if ("OP".equals(childSymbol)) {
+                            // Call typeof for the CALL child
+                            char callType = typeof(child);
+                            System.out.println("[DEBUG] CALL type: " + callType);
+                            return callType; // return or process accordingly
+                        }
+                    }
+                    break;
+    
+               
+                    case "CALL":
+                    System.out.println("[DEBUG] Node is of type CALL");
+    
+                    // Get the children of the CALL node
+                    List<Node> childrenNode = getChildrenNodes(node); // Assuming this returns List<Node>
+    
+                    // Assuming the first child is FNAME, followed by ATOMIC1, ATOMIC2, ATOMIC3, ...
+                    Node fnameNode = childrenNode.get(0); // FNAME
+                    Node atomic1Node = childrenNode.get(2); // ATOMIC1
+                    Node atomic2Node = childrenNode.get(4); // ATOMIC2
+                    Node atomic3Node = childrenNode.get(6); // ATOMIC3
+    
+                    // Check the types of ATOMIC parameters
+                    char atomic1Type = typeof(atomic1Node);
+                    char atomic2Type = typeof(atomic2Node);
+                    char atomic3Type = typeof(atomic3Node);
+    
+                    System.out.println("[DEBUG] Types of parameters: "
+                            + "ATOMIC1: " + atomic1Type + ", "
+                            + "ATOMIC2: " + atomic2Type + ", "
+                            + "ATOMIC3: " + atomic3Type);
+    
+                    // Check if all three parameters are numeric
+                    if (atomic1Type == 'n' && atomic2Type == 'n' && atomic3Type == 'n') {
+                        // Get the type of FNAME from the symbol table
+                       
+                       // List<Node> kid = getChildrenNodes(child);
+                        // id = getTextContentSafe(child, "ID"); // child id
+                                  
+                        // String childname = getSymbol(kid.get(0)); // child name
+                        // String tableId = getIdBySymbolName(childname);
+                        // char fnameType = getTypeFromSymbolTable(getTextContentSafe(fnameNode, "FNAME")); // Assuming you can get the name
+                        // System.out.println("[DEBUG] Type of FNAME: " + fnameType);
+                        // return fnameType; 
+                        return 'f';// typeof(CALL) = typeof(FNAME)
+                    } else {
+                        System.out.println("[DEBUG] Not all parameters are numeric");
+                        return 'u'; // typeof(CALL) = 'u'
+                    }
+                    case "OP":
+                    System.out.println("[DEBUG] Node is of type OP");
+    
+                    // Get the children of the OP node
+                         children = getChildrenNodes(node); // Assuming this returns List<Node>
+                    Node unopNode = children.get(0); // UNOP
+                    Node argNode = children.get(1); // ARG
+    
+                    // Determine the types of UNOP and ARG
+                    char unopType = typeof(unopNode);
+                    char argType = typeof(argNode);
+    
+                    System.out.println("[DEBUG] Types: UNOP: " + unopType + ", ARG: " + argType);
+    
+                    // Check the conditions for type determination
+                    if (unopType == 'b' && argType == 'b') {
+                        System.out.println("[DEBUG] Both UNOP and ARG are boolean types");
+                        return 'b'; // typeof(OP) = 'b'
+                    } else if (unopType == 'n' && argType == 'n') {
+                        System.out.println("[DEBUG] Both UNOP and ARG are numeric types");
+                        return 'n'; // typeof(OP) = 'n'
+                    } else {
+                        System.out.println("[DEBUG] Types are not compatible");
+                        return 'u'; // typeof(OP) = 'u'
+                    }
+
+                    case "ARG":
+                    System.out.println("[DEBUG] Node is of type ARG");
+    
+                    // Get the children of the ARG node
+                     children = getChildrenNodes(node); // Assuming this returns List<Node>
+                    
+                    // Assuming we have at least one child
+                    Node argChild = children.get(0); // Get the first child, which could be ATOMIC or OP
+    
+                    // Determine the type of the argument based on its child
+                      argType = typeof(argChild);
+                    
+                    System.out.println("[DEBUG] Type of ARG: " + argType);
+    
+                    // Check if the child is ATOMIC
+                    if (getSymbol(argChild).equals("ATOMIC")) {
+                        // If it's ATOMIC, typeof(ARG) = typeof(ATOMIC)
+                        return argType; // return the type of ATOMIC
+                    } else if (getSymbol(argChild).equals("OP")) {
+                        // If it's OP, typeof(ARG) = typeof(OP)
+                        return typeof(argChild); // return the type of OP
+                    }
+    
+                    break;
+                    case "FTYP":
+                // Get the first child of FTYP
+                List<Node> ftypChildren = getChildrenNodes(node); // Assuming this returns List<Node>
+                Node ftypChild = ftypChildren.get(0); // This should be either num or void
+
+                String ftypChildSymbol = getSymbol(ftypChild);
+                System.out.println("[DEBUG] FTYP child symbol: " + ftypChildSymbol);
+
+                if ("num".equals(ftypChildSymbol)) {
+                    System.out.println("[DEBUG] FTYP type is numeric");
+                    return typeof(ftypChild); // typeof(FTYP) = 'n'
+                } else if ("void".equals(ftypChildSymbol)) {
+                    System.out.println("[DEBUG] FTYP type is void");
+                    return typeof(ftypChild); // typeof(FTYP) = 'v'
+                } else {
+                    System.out.println("[DEBUG] FTYP type is undefined");
+                    return 'u'; // Undefined type
+                }
+
+    
+            }
+        } catch (Exception e) {
+            System.err.println("[ERROR] Exception occurred: " + e.getMessage());
+            e.printStackTrace();
+        }
+    
+        return 'c'; // Default return value if no conditions matched
+    }
+    
+
     private char typeof(String content) {
         switch (content) {
             case "num":
@@ -685,6 +876,7 @@ public class TypeChecker {
             case "mul":
             case "div":
                 return 'n'; // Numeric type (binary operator)
+          
             default:
                 System.out.println("Unknown content: " + content);
                 return 'u'; // Undefined type
@@ -904,8 +1096,11 @@ private boolean findSymbolInTable(Map<String, Symbol> table, String name) {
     
 
     private String getTypeFromSymbolTable(String name) {
+        System.out.println("name #####"+ name);
         // Check in the variable table
         if (vtable.containsKey(name)) {
+
+            System.out.println("name #####"+ name);
             return vtable.get(name).getType();
         }
     
@@ -937,6 +1132,40 @@ private boolean findSymbolInTable(Map<String, Symbol> table, String name) {
         }
         return null; // Return null if neither SYMB nor TERMINAL is found
     }
+
+    public String getIdBySymbolName(String symbolName) {
+        // Search in vtable
+        System.out.println("Searching for symbol name: " + symbolName);
+    
+        if (vtable != null) {
+            for (Map.Entry<String, Symbol> entry : vtable.entrySet()) {
+                System.out.println("Checking vtable entry: " + entry.getValue().getName());
+                if (entry.getValue().getSymb().equals(symbolName)) {
+                    System.out.println("Found in vtable: " + entry.getKey());
+                    return entry.getKey(); // Return the ID (key) associated with the symbol
+                }
+            }
+        } else {
+            System.out.println("vtable is null.");
+        }
+    
+        // Optionally search in ftable if needed
+        if (ftable != null) {
+            for (Map.Entry<String, Symbol> entry : ftable.entrySet()) {
+                System.out.println("Checking ftable entry: " + entry.getValue().getName());
+                if (entry.getValue().getSymb().equals(symbolName)) {
+                    System.out.println("Found in ftable: " + entry.getKey());
+                    return entry.getKey(); // Return the ID (key) associated with the symbol
+                }
+            }
+        } else {
+            System.out.println("ftable is null.");
+        }
+    
+        System.out.println("Symbol name not found: " + symbolName);
+        return null; // Return null if not found in both tables
+    }
+    
     
 
     private static Document parseXML(File xmlFile) throws Exception {
