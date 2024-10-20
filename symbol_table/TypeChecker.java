@@ -41,6 +41,9 @@ public class TypeChecker {
                 List<Node> innerNodesOnly = studentInnerNodes.stream()
                                                              .filter(this::isInnerNode)
                                                              .collect(Collectors.toList());
+
+                
+
                 System.out.println("[DEBUG] Number of inner nodes: " + innerNodesOnly.size());
 
                 boolean globVarsCheck = false;
