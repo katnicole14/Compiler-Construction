@@ -188,14 +188,6 @@ public Map<String, Symbol> getFtable(){
             // Handle any exceptions
             e.printStackTrace(); // Log or handle exceptions as necessary
         }
-
-
-
-
-
-        
-
-   
     }
      
     }
