@@ -13,6 +13,7 @@ public class TypeChecker {
     private Map<String, Symbol> vtable ;
     private Map<String, Symbol> ftable ;
     private static File xmlfile ;
+    private Stack<String> scopeStack=new Stack<>();
     public TypeChecker( File xmlfile ,Map<String, Symbol> vtable ,Map<String, Symbol> ftable) {
         this.xmlfile = xmlfile;
         this.ftable = ftable;
@@ -37,7 +38,9 @@ public class TypeChecker {
                     .collect(Collectors.toList()); // terminals
     
             switch (symbol) {
+
                 case "PROG":
+                   
                     System.out.println("[DEBUG] Entered 'PROG' case");
     
                     boolean allChecksPass = true;
@@ -152,7 +155,8 @@ public class TypeChecker {
                             System.out.println("[DEBUG] Result of commandCheck: " + commandCheck);
                             System.out.println("[DEBUG] Processing child node with Symbol: " + getSymbol(studentInnerNodes.get(2)));
                             boolean instruc2Check = typeChecker(studentInnerNodes.get(2)); // Assuming INSTRUC2 is the next sibling
-                            System.out.println("[DEBUG] Result of instruc2Check: " + instruc2Check);
+                           System.out.println("instruc symbol " + getSymbol(studentInnerNodes.get(2)) +"with ID " + getTextContent(studentInnerNodes.get(2),"UNID"));
+                            System.out.println("[DEBUG] this " + instruc2Check);
     
                             return commandCheck && instruc2Check;   
                 
@@ -183,17 +187,27 @@ public class TypeChecker {
                                 System.out.println("[DEBUG] No ATOMIC node found for 'print' command");
                                 return false;
                             case "return":
+                            System.out.println("[DEBUG] case 'return' command detected");
+                                String scope = currentScope();
+                             
+                                String scopeId = getIdBySymbolName(scope);
+                              
+                                char functionType  = getTypeFromSymbolTable(scopeId);
+                                System.out.println("scope :" + scope + ";scopeid: " + scopeId + " ,function type: " + functionType);
+
                                 System.out.println("[DEBUG] 'return' command detected");
-                                Node returnAtomicNode = getChildNodeByTagName(childNode, "ATOMIC");
+                                Node returnAtomicNode =studentInnerNodes.get(1);
+                             
+
                                 if (returnAtomicNode != null) {
-                                    char returnType = typeof(getTextContentSafe(returnAtomicNode, "ATOMIC"));
-                                    char functionType = findFunctionType(childNode);
-                                    System.out.println("[DEBUG] Return type for 'return': " + returnType);
-                                    System.out.println("[DEBUG] Function type for 'return': " + functionType);
-                                    return returnType == functionType && functionType == 'n';
+                                    char atomicType = typeof(returnAtomicNode);
+                                    System.out.println("[DEBUG] Atomic type for 'print': " + atomicType);
+                                    return atomicType == functionType || atomicType == functionType;
                                 }
                                 System.out.println("[DEBUG] No ATOMIC node found for 'return' command");
                                 return false;
+
+                              
                             case "ASSIGN":
                                 System.out.println("[DEBUG] 'ASSIGN' detected, processing assignment");
                                 return typeChecker(childNode);
@@ -262,10 +276,22 @@ public class TypeChecker {
                     List<Node> funNode = getChildrenNodes(studentInnerNodes.get(1));
                     String FuncId = getIdBySymbolName(getSymbol(funNode.get(0)));
                     System.out.println("[DEBUG] Function ID: " + FuncId);
-                    
+                    enterScope(getSymbol(funNode.get(0)));
                     // Update the symbol table with the function ID and type
                     updateSymbolTable(FuncId, ftyp);
                     System.out.println("[DEBUG] Updated symbol table with FuncId: " + FuncId + " and ftyp: " + ftyp);
+
+                    List<Node> var1 = getChildrenNodes(studentInnerNodes.get(2));
+                    List<Node> var2 = getChildrenNodes(studentInnerNodes.get(3));
+                    List<Node> var3 = getChildrenNodes(studentInnerNodes.get(4));
+                    String var1Id = getIdBySymbolName(getSymbol(var1.get(0)));
+                    String var2Id = getIdBySymbolName(getSymbol(var2.get(0)));
+                    String var3Id = getIdBySymbolName(getSymbol(var3.get(0)));
+                    char paramtype = 'n';
+                    // Update the symbol table with the function ID and type
+                    updateSymbolTable(var1Id, paramtype);
+                    updateSymbolTable(var2Id, paramtype);
+                    updateSymbolTable(var3Id, paramtype);
                     
                     // Check types of specific nodes
                     char type3 = typeof(studentInnerNodes.get(2));
@@ -301,6 +327,7 @@ public class TypeChecker {
                 case "PROLOG":
                     return true;
                 case "EPILOG":
+                
                     return true;
                     case "LOCVARS":
                     System.out.println("[DEBUG] Entered 'LOCALVARS' case");
@@ -359,6 +386,7 @@ public class TypeChecker {
                     boolean subfun = typeChecker(studentInnerNodes.get(4)); // Corrected index
                     System.out.println("[DEBUG] Prolog: " + prolog + ", Local Variable: " + locvar + ", Algorithm: " + algo +
                                        ", Epilog: " + epilog + ", Subfunctions: " + subfun);
+                                       exitScope();
                     return prolog && locvar && algo && epilog && subfun;
                 
                 case "FUNCTIONS":
@@ -451,6 +479,7 @@ public class TypeChecker {
                     String funcName = getIdBySymbolName(getSymbol(children.get(0)));
                     System.out.println("[DEBUG] Function ID: " + funcName);
                     char ty = getTypeFromSymbolTable(funcName);
+                    System.out.println("returning the function type " + ty);
                     return ty;
     
                 case "TERM":
@@ -472,6 +501,7 @@ public class TypeChecker {
                         // Check if child symbol is "CALL"
                         if ("CALL".equals(childSymbol)) {
                             List<Node> call = getChildrenNodes(child);
+                            System.out.println("call node" + getSymbol(call.get(0)));
                             char callType = typeof(call.get(0));
                             System.out.println("[DEBUG] CALL type: " + callType);
                             return callType;
@@ -596,7 +626,12 @@ public class TypeChecker {
                     break;
     
                 case "CONST":
-                    return 'c';
+                List<Node> constValueNode = getChildrenNodes(node);
+                     System.out.println("the value of constant :" + getSymbol(constValueNode.get(0))); 
+                     if (isNumber(getSymbol((constValueNode.get(0))))){
+                        return 'n';
+                     }
+                     else return 't';
                     
                 case "FTYP":
                     List<Node> ftypChildren = getChildrenNodes(node);
@@ -709,6 +744,7 @@ public class TypeChecker {
             // Start analyzing from the <ROOT> node
             Element root = (Element) doc.getElementsByTagName("ROOT").item(0);
           boolean tree  = typeChecker(root);
+          exitScope();
           System.out.println(tree);
 
 
@@ -868,7 +904,13 @@ private boolean findSymbolInTable(Map<String, Symbol> table, String name) {
         return nodeList.item(0);
     }
     
-
+    public boolean isNumber(String input) {
+        // Regular expression for a valid number (integer or decimal)
+        String numberPattern = "^-?\\d+(\\.\\d+)?$";
+        
+        // Return true if the input matches the pattern, false otherwise
+        return input.matches(numberPattern);
+    }
     private char getTypeFromSymbolTable(String name) {
         System.out.println("name #####"+ name);
         // Check in the variable table
@@ -940,6 +982,30 @@ private boolean findSymbolInTable(Map<String, Symbol> table, String name) {
         return null; // Return null if not found in both tables
     }
     
+    private void enterScope(String scopeName) {
+        scopeStack.push(scopeName); // Push the new scope onto the stack
+        System.out.println("Entering scope : " + scopeName);
+
+       
+    }
+
+    private void exitScope() {
+        if (scopeStack.size() == 0) {
+            return;
+        }
+        String exitedScope = scopeStack.pop(); // Remove the current scope
+
+        System.out.println("xiting  scope : " + exitedScope);
+
+    }
+
+    private String currentScope() {
+        if (scopeStack.size() == 0) {
+            return " ";
+        }
+        System.out.println("getting current scope : " );
+        return scopeStack.peek(); // Get the current scope from the stack
+    }
     
 
     private static Document parseXML(File xmlFile) throws Exception {
