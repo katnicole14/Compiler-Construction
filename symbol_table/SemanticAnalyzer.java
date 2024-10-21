@@ -101,7 +101,7 @@ public Map<String, Symbol> getFtable(){
         List<String> childList = new ArrayList<>();  
         List<String> children = new ArrayList<>();   
         List<String> temp  = null;
-        String types = "";
+        char types = ' ';
         if (isFunction(terminal)) {
             // Function scope handling
             try {
@@ -121,7 +121,7 @@ public Map<String, Symbol> getFtable(){
                     if (getSymbolByUNID(child).equals("FTYP")) {
                         // Add to childlist if condition is met
                         temp = getChildren(child);
-                        types = getSymbolByUNID(temp.get(0));
+                       // types = getSymbolByUNID(temp.get(0));
                     }
                 }
 
@@ -145,7 +145,7 @@ public Map<String, Symbol> getFtable(){
                 scopeStack.push(uniqueName); // Push the new unique function name onto the scope stack
                 ftable.put(unid, new Symbol(uniqueName, types, scope, children,terminal)); // Add the function to the symbol table
             } else if (terminal.equals("main")) {
-            ftable.put(unid, new Symbol(terminal, "main", scopeStack.peek(),children,terminal )); // Store 'main' in the symbol table
+            ftable.put(unid, new Symbol(terminal, 'm', scopeStack.peek(),children,terminal )); // Store 'main' in the symbol table
         } 
     }
     else if (isToken(terminal) && !isKeyword(terminal)) {
@@ -181,7 +181,7 @@ public Map<String, Symbol> getFtable(){
                 if (local || global || parameter) {
                 String uniqueName = generateUniqueName(terminal);
              
-                vtable.put(unid, new Symbol(uniqueName, "", scopeStack.peek(), terminal)); // Store variable in the symbol table
+                vtable.put(unid, new Symbol(uniqueName, ' ', scopeStack.peek(), terminal)); // Store variable in the symbol table
             }
         }
         } catch (Exception e) {

@@ -5,13 +5,13 @@ import java.util.Objects;
 
 public class Symbol {
     private String name;
-    private String type;
+    private char type;
     private String scope;
     private List<String> parameters;
     private String symb;
     
 
-    public Symbol(String name, String type, String scope, String symb) {
+    public Symbol(String name, char type, String scope, String symb) {
         this.name = name;
         this.type = type;
         this.scope = scope;
@@ -19,7 +19,7 @@ public class Symbol {
     
     }
 
-       public Symbol(String name, String type, String scope, List<String> parameters, String symb) {
+       public Symbol(String name, char type, String scope, List<String> parameters, String symb) {
         this.name = name;
         this.type = type;
         this.scope = scope;
@@ -32,13 +32,13 @@ public class Symbol {
     public String getScope() {
         return scope;
     }
-    public String getType() {
+    public char getType() {
         return type;
     }
     public String getSymb() {
         return symb;
     }
-    public void setType(String type){
+    public void setType(char type){
      this.type = type;
     } 
   
