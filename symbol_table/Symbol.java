@@ -45,7 +45,6 @@ public class Symbol {
     public List<String> getParameters(){
         return parameters;
     }
-    
 
     @Override
     public String toString() {

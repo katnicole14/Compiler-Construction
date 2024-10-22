@@ -12,11 +12,12 @@ public class Main {
             //send it to the translater for further processing
             //need to output the intermediate code to the console
         File xmlFile = new File("syntax_tree.xml"); // Input XML file
-        Translator translator = new Translator();
+        SemanticAnalyzer analyzer = new SemanticAnalyzer();
+        Translator translator = new Translator(analyzer);
         String intermediateCode = translator.translate(xmlFile);
 
         // Output the result
-        // System.out.println(intermediateCode);
+        System.out.println(intermediateCode);
     }
 }
 
