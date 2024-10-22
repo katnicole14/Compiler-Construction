@@ -1,0 +1,10 @@
+F_
+V_
+0
+""
+=
+print
+main
+V_a = 0;
+begin F_sum( V_x, V_y, V_z ) return 123.45 ;
+end
