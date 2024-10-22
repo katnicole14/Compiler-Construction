@@ -1,0 +1,4 @@
+main    begin  end
+V_x     =   10 ;
+print   "Hello" ;
+V_y     =   -5.5 ;

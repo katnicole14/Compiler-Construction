@@ -27,21 +27,21 @@ public class Lexer {
      */
     public void tokenize() throws Exception {
         String[] patterns = {
-            "\\b(main|begin|end|skip|halt|print|input|num|if|then|void|else|not|sqrt|or|and|eq|grt|add|sub|mul|div)\\b", // Keywords
+            "\\b(main|begin|end|skip|halt|print|input|num|if|then|void|else|not|sqrt|or|and|eq|grt|add|return|sub|mul|div)\\b", // Keywords
             "\\bV_[a-z][a-z0-9]*\\b", // Variable names
             "\\bF_[a-z][a-z0-9]*\\b", // Function names
             "-?\\b0(\\.\\d+)?\\b", // Numbers starting with 0 or 0.x
             "-?\\b[1-9]\\d*(\\.\\d+)?\\b", // Positive and negative integers/real numbers
-            "\\b[a-zA-Z]{1,8}\\b", // String literals with 8 or fewer characters
+           "\"[A-Z][a-z]{0,7}\"",// String literals with 8 or fewer characters and starts with capital letter
             "[=<>(){};,]", // Symbols treated as keywords
-            "\\s+", // Whitespace
-            ".+" // Unknown (catch-all)
+            "\\s+" // Whitespace 
+            //Removed unknown (catch-all) pattern
         };
     
         String[] tokenClasses = {
             "reserved_keyword", "V", "F", "N", "N", "T", "Symbols", "whitespace", "unknown"
         };
-    
+        List<String> unknownTokens = new ArrayList<>();
         int tokenId = 1;
         while (currentPos < inputCode.length()) {
             boolean matchFound = false;
@@ -92,8 +92,24 @@ public class Lexer {
             }
     
             if (!matchFound) {
-                throw new Exception("Lexical error at position " + currentPos);
+                // throw new Exception("Lexical error: Unrecognized token at position " + currentPos + ". Current input: \"" + inputCode.substring(currentPos) + "\"");
+                unknownTokens.add(inputCode.substring(currentPos, Math.min(currentPos + 10, inputCode.length())));
+                currentPos++;
             }
+
+            // If there are unknown tokens, throw an exception with a summary message
+            if (!unknownTokens.isEmpty()) {
+                StringBuilder unknownSummary = new StringBuilder("Unknown tokens found:\n");
+                for (String unknownToken : unknownTokens) {
+                    unknownSummary.append("- \"").append(unknownToken).append("\"\n");
+                }
+                unknownSummary.append("Lexer failed: Please check the tokenization rules.");
+                
+                // Throw the exception with a single error message
+                throw new Exception("An error occurred during tokenization:\n" + unknownSummary.toString());
+            }
+
+
         }
     }
 

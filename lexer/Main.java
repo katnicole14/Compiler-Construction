@@ -17,8 +17,8 @@ public class Main {
         //     System.exit(1);
         // }
 
-        String inputFilePath = "lexer/input.txt";
-        String outputFilePath = "lexer/output.xml";
+        String inputFilePath = "input-lexer/whitespace.txt";
+        String outputFilePath = "lexer/variable.xml";
 
         // Create a File object for the input file
         File inputFile = new File(inputFilePath);
@@ -43,7 +43,7 @@ public class Main {
             System.err.println("An error occurred while reading or writing files: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
-            System.err.println("An error occurred during tokenization: " + e.getMessage());
+          
             e.printStackTrace();
         }
     }
