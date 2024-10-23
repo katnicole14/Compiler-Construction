@@ -438,6 +438,8 @@ public class TypeChecker {
         }
         return nodeList.item(0);
     }
+
+    
     private void updateSymbolTable(String id, String type) {
         System.out.println("Updating symbol for id: " + id);
 
@@ -503,11 +505,7 @@ public class TypeChecker {
     
                         // Check if child symbol is "CALL"
                         if ("CALL".equals(childSymbol)) {
-                            List<Node> call = getChildrenNodes(child);
-                            System.out.println("call node" + getSymbol(call.get(0)));
-                            char callType = typeof(call.get(0));
-                            System.out.println("[DEBUG] CALL type: " + callType);
-                            return callType;
+                            return typeof(child);
                         }
     
                         if ("OP".equals(childSymbol)) {
@@ -519,6 +517,7 @@ public class TypeChecker {
                     break;
     
                 case "CALL":
+                    System.out.println("here at the call UNDER TYPEOF node");
                     System.out.println("[DEBUG] Node is of type CALL");
     
                     // Get the children of the CALL node

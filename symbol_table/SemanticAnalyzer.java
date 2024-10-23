@@ -87,130 +87,95 @@ public Map<String, Symbol> getFtable(){
         
     }
 
-    // Handle LEAF nodes (variables or terminal symbols)
     private void handleLeafNodes(Node node) {
         String terminal = getTextContent(node, "TERMINAL");
-        //String parent = getTextContent(node, "PARENT");
         String unid = getTextContent(node, "UNID");
     
-        // Handle terminal nodes (tokens from the lexer)
-
-        String parent =null;
+        String parent = null;
         String grandparent = null;
-        String grandSymb  = null;
-        List<String> childList = new ArrayList<>();  
-        List<String> children = new ArrayList<>();   
-        List<String> temp  = null;
+        String grandSymb = null;
+        List<String> childList = new ArrayList<>();
+        List<String> children = new ArrayList<>();
+        List<String> temp = null;
         String types = "";
+    
         if (isFunction(terminal)) {
-            // Function scope handling
             try {
                 parent = getParent(unid);
                 grandparent = getParent(parent);
                 grandSymb = getSymbolByUNID(grandparent);
                 childList = getChildren(grandparent);
-                 
+    
                 for (String child : childList) {
-                 
-                    // Check your condition (e.g., if the child contains "special")
                     if (getSymbolByUNID(child).equals("VNAME")) {
-                        // Add to childlist if condition is met
                         temp = getChildren(child);
                         children.add(getSymbolByUNID(temp.get(0)));
                     }
-
+    
                     if (getSymbolByUNID(child).equals("FTYP")) {
-                        // Add to childlist if condition is met
                         temp = getChildren(child);
                         types = getSymbolByUNID(temp.get(0));
                     }
                 }
-          
+    
             } catch (Exception e) {
-                e.printStackTrace(); // Handle any exceptions (can log or rethrow if necessary)
+                e.printStackTrace();
             }
-        
-            boolean inTable = findSymbolByName(terminal); // Check if the function is already in the symbol table
-            boolean declaration = "HEADER".equals(grandSymb); // Check if the grandparent is 'HEADER'  
+    
+            boolean inTable = findSymbolByName(terminal);
+            boolean declaration = "HEADER".equals(grandSymb);
+    
             if (inTable && declaration) {
-                throwError("Function name conflict in scope", unid); // Conflict: function already declared in this scope
+                throwError("Function name conflict in scope", unid);
             } else if (!inTable && declaration) {
-                // Only add to the table if it's not already in the table and grandparent is 'HEADER'
                 String uniqueName = generateUniqueName(terminal);
                 String scope = scopeStack.peek();
-                scopeStack.push(uniqueName); // Push the new unique function name onto the scope stack
-                ftable.put(unid, new Symbol(uniqueName, types, scope, children,terminal)); // Add the function to the symbol table
+                scopeStack.push(uniqueName);
+                ftable.put(unid, new Symbol(uniqueName, types, scope, children, terminal));
             } else if (terminal.equals("main")) {
-            ftable.put(unid, new Symbol(terminal, "main", scopeStack.peek(),children,terminal )); // Store 'main' in the symbol table
-        } 
-    }
-    else if (isToken(terminal) && !isKeyword(terminal)) {
-        try {
-            // Get parent and grandparent nodes
-            parent = getParent(unid);
-            grandparent = getParent(parent);
-            grandSymb = getSymbolByUNID(grandparent);
-            childList = getChildren(grandparent);
-        
-            boolean local = grandSymb.equals("LOCVARS");
-            boolean global = grandSymb.equals("GLOBVARS");
-            boolean parameter = grandSymb.equals("HEADER");
-            boolean sameScope = findSymbolByNameInScope(terminal, scopeStack.peek());
-        
-             // Keep track of the previous child to determine the type
-            
-            for (String child : childList) {
-                // Debugging for processing each child
-                System.out.println("Debug: Processing child node: " + child);
-
-                if (getSymbolByUNID(child).equals("VTYP")) {
-                    // Add to childlist if condition is met
-                    temp = getChildren(child);
-                    types = getSymbolByUNID(temp.get(0));
-                }
-        
-                // If this child is a parameter, assign the type
-                if (parameter) {
-                    temp = getChildren(child);  // Assuming temp gets children of current child
-                    types = "num";  // Set type to "num" for parameters in this example
-                    System.out.println("Debug: Assigning type '" + types + "' to parameter '" + terminal + "'");
-                    String uniqueName = generateUniqueName(terminal);
-                    vtable.put(unid, new Symbol(uniqueName, types, scopeStack.peek(), terminal));
-                    System.out.println("Debug: Added parameter '" + terminal + "' to symbol table with type '" + types + "'");
-                } 
-                  // Handle variable conflicts in local or global scope
-            if (sameScope && (local || global)) {
-                throwError("Variable name conflict in scope", unid);
-            } else {
-                if (local || global) {
-                    String uniqueName = generateUniqueName(terminal);
-                    System.out.println("Debug: Adding variable '" + terminal + "' with type '" + types + "' to symbol table.");
-                    vtable.put(unid, new Symbol(uniqueName, types, scopeStack.peek(), terminal));
-                    System.out.println("Debug: Variable '" + terminal + "' added to symbol table under scope: " + (local ? "LOCAL" : "GLOBAL"));
-                }
+                ftable.put(unid, new Symbol(terminal, "main", scopeStack.peek(), children, terminal));
             }
-        
-
-            }
-        
-          
-        
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-          System.out.println("====================end=========================");
+        } else if (isToken(terminal) && !isKeyword(terminal)) {
+            try {
+                parent = getParent(unid);
+                grandparent = getParent(parent);
+                grandSymb = getSymbolByUNID(grandparent);
+                childList = getChildren(grandparent);
     
-
-
-
-
-
-        
-
-   
+                boolean local = grandSymb.equals("LOCVARS");
+                boolean global = grandSymb.equals("GLOBVARS");
+                boolean parameter = grandSymb.equals("HEADER");
+                boolean sameScope = findSymbolByNameInScope(terminal, scopeStack.peek());
+    
+                for (String child : childList) {
+                    if (getSymbolByUNID(child).equals("VTYP")) {
+                        temp = getChildren(child);
+                        types = getSymbolByUNID(temp.get(0));
+                    }
+    
+                    if (parameter) {
+                        temp = getChildren(child);
+                        types = "num";
+                        String uniqueName = generateUniqueName(terminal);
+                        vtable.put(unid, new Symbol(uniqueName, types, scopeStack.peek(), terminal));
+                    }
+    
+                    if (sameScope && (local || global)) {
+                        throwError("Variable name conflict in scope", unid);
+                    } else {
+                        if (local || global) {
+                            String uniqueName = generateUniqueName(terminal);
+                            vtable.put(unid, new Symbol(uniqueName, types, scopeStack.peek(), terminal));
+                        }
+                    }
+                }
+    
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
-     
-    }
+    
     
     
     // Helper method to process child nodes

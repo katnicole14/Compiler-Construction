@@ -1,9 +1,9 @@
 main
-num V_x, text V_y,
+num V_x, num V_y,text V_p,
 begin
     V_x = 10;
     V_y = 20;
-    V_temp = F_sum(V_x, 3, 0);
+    V_temp = F_sum(V_x, 3,V_y);
     print V_temp;
     halt;
 end

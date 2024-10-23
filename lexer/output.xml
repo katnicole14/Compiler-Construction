@@ -21,8 +21,8 @@
 </TOK>
 <TOK>
   <ID>5</ID>
-  <CLASS>T</CLASS>
-  <WORD>text</WORD>
+  <CLASS>reserved_keyword</CLASS>
+  <WORD>num</WORD>
 </TOK>
 <TOK>
   <ID>6</ID>
@@ -36,113 +36,113 @@
 </TOK>
 <TOK>
   <ID>8</ID>
-  <CLASS>reserved_keyword</CLASS>
-  <WORD>begin</WORD>
+  <CLASS>T</CLASS>
+  <WORD>text</WORD>
 </TOK>
 <TOK>
   <ID>9</ID>
   <CLASS>V</CLASS>
-  <WORD>V_x</WORD>
+  <WORD>V_p</WORD>
 </TOK>
 <TOK>
   <ID>10</ID>
+  <CLASS>comma</CLASS>
+  <WORD>,</WORD>
+</TOK>
+<TOK>
+  <ID>11</ID>
+  <CLASS>reserved_keyword</CLASS>
+  <WORD>begin</WORD>
+</TOK>
+<TOK>
+  <ID>12</ID>
+  <CLASS>V</CLASS>
+  <WORD>V_x</WORD>
+</TOK>
+<TOK>
+  <ID>13</ID>
   <CLASS>equal</CLASS>
   <WORD>=</WORD>
 </TOK>
 <TOK>
-  <ID>11</ID>
+  <ID>14</ID>
   <CLASS>N</CLASS>
   <WORD>10</WORD>
 </TOK>
 <TOK>
-  <ID>12</ID>
+  <ID>15</ID>
   <CLASS>semicolon</CLASS>
   <WORD>;</WORD>
 </TOK>
 <TOK>
-  <ID>13</ID>
+  <ID>16</ID>
   <CLASS>V</CLASS>
   <WORD>V_y</WORD>
 </TOK>
 <TOK>
-  <ID>14</ID>
+  <ID>17</ID>
   <CLASS>equal</CLASS>
   <WORD>=</WORD>
 </TOK>
 <TOK>
-  <ID>15</ID>
+  <ID>18</ID>
   <CLASS>N</CLASS>
   <WORD>20</WORD>
 </TOK>
 <TOK>
-  <ID>16</ID>
+  <ID>19</ID>
   <CLASS>semicolon</CLASS>
   <WORD>;</WORD>
 </TOK>
 <TOK>
-  <ID>17</ID>
+  <ID>20</ID>
   <CLASS>V</CLASS>
   <WORD>V_temp</WORD>
 </TOK>
 <TOK>
-  <ID>18</ID>
+  <ID>21</ID>
   <CLASS>equal</CLASS>
   <WORD>=</WORD>
 </TOK>
 <TOK>
-  <ID>19</ID>
+  <ID>22</ID>
   <CLASS>F</CLASS>
   <WORD>F_sum</WORD>
 </TOK>
 <TOK>
-  <ID>20</ID>
+  <ID>23</ID>
   <CLASS>lparen</CLASS>
   <WORD>(</WORD>
 </TOK>
 <TOK>
-  <ID>21</ID>
+  <ID>24</ID>
   <CLASS>V</CLASS>
   <WORD>V_x</WORD>
 </TOK>
 <TOK>
-  <ID>22</ID>
+  <ID>25</ID>
   <CLASS>comma</CLASS>
   <WORD>,</WORD>
 </TOK>
 <TOK>
-  <ID>23</ID>
+  <ID>26</ID>
   <CLASS>N</CLASS>
   <WORD>3</WORD>
 </TOK>
 <TOK>
-  <ID>24</ID>
+  <ID>27</ID>
   <CLASS>comma</CLASS>
   <WORD>,</WORD>
 </TOK>
 <TOK>
-  <ID>25</ID>
-  <CLASS>N</CLASS>
-  <WORD>0</WORD>
-</TOK>
-<TOK>
-  <ID>26</ID>
-  <CLASS>rparen</CLASS>
-  <WORD>)</WORD>
-</TOK>
-<TOK>
-  <ID>27</ID>
-  <CLASS>semicolon</CLASS>
-  <WORD>;</WORD>
-</TOK>
-<TOK>
   <ID>28</ID>
-  <CLASS>reserved_keyword</CLASS>
-  <WORD>print</WORD>
+  <CLASS>V</CLASS>
+  <WORD>V_y</WORD>
 </TOK>
 <TOK>
   <ID>29</ID>
-  <CLASS>V</CLASS>
-  <WORD>V_temp</WORD>
+  <CLASS>rparen</CLASS>
+  <WORD>)</WORD>
 </TOK>
 <TOK>
   <ID>30</ID>
@@ -152,82 +152,82 @@
 <TOK>
   <ID>31</ID>
   <CLASS>reserved_keyword</CLASS>
-  <WORD>halt</WORD>
+  <WORD>print</WORD>
 </TOK>
 <TOK>
   <ID>32</ID>
+  <CLASS>V</CLASS>
+  <WORD>V_temp</WORD>
+</TOK>
+<TOK>
+  <ID>33</ID>
   <CLASS>semicolon</CLASS>
   <WORD>;</WORD>
 </TOK>
 <TOK>
-  <ID>33</ID>
+  <ID>34</ID>
+  <CLASS>reserved_keyword</CLASS>
+  <WORD>halt</WORD>
+</TOK>
+<TOK>
+  <ID>35</ID>
+  <CLASS>semicolon</CLASS>
+  <WORD>;</WORD>
+</TOK>
+<TOK>
+  <ID>36</ID>
   <CLASS>reserved_keyword</CLASS>
   <WORD>end</WORD>
 </TOK>
 <TOK>
-  <ID>34</ID>
+  <ID>37</ID>
   <CLASS>reserved_keyword</CLASS>
   <WORD>num</WORD>
 </TOK>
 <TOK>
-  <ID>35</ID>
+  <ID>38</ID>
   <CLASS>F</CLASS>
   <WORD>F_sum</WORD>
 </TOK>
 <TOK>
-  <ID>36</ID>
+  <ID>39</ID>
   <CLASS>lparen</CLASS>
   <WORD>(</WORD>
 </TOK>
 <TOK>
-  <ID>37</ID>
+  <ID>40</ID>
   <CLASS>V</CLASS>
   <WORD>V_a</WORD>
 </TOK>
 <TOK>
-  <ID>38</ID>
+  <ID>41</ID>
   <CLASS>comma</CLASS>
   <WORD>,</WORD>
 </TOK>
 <TOK>
-  <ID>39</ID>
+  <ID>42</ID>
   <CLASS>V</CLASS>
   <WORD>V_b</WORD>
 </TOK>
 <TOK>
-  <ID>40</ID>
+  <ID>43</ID>
   <CLASS>comma</CLASS>
   <WORD>,</WORD>
 </TOK>
 <TOK>
-  <ID>41</ID>
+  <ID>44</ID>
   <CLASS>V</CLASS>
   <WORD>V_c</WORD>
 </TOK>
 <TOK>
-  <ID>42</ID>
+  <ID>45</ID>
   <CLASS>rparen</CLASS>
   <WORD>)</WORD>
 </TOK>
 <TOK>
-  <ID>43</ID>
+  <ID>46</ID>
   <CLASS>lbrace</CLASS>
   <WORD>{</WORD>
-</TOK>
-<TOK>
-  <ID>44</ID>
-  <CLASS>reserved_keyword</CLASS>
-  <WORD>num</WORD>
-</TOK>
-<TOK>
-  <ID>45</ID>
-  <CLASS>V</CLASS>
-  <WORD>V_result</WORD>
-</TOK>
-<TOK>
-  <ID>46</ID>
-  <CLASS>comma</CLASS>
-  <WORD>,</WORD>
 </TOK>
 <TOK>
   <ID>47</ID>
@@ -237,7 +237,7 @@
 <TOK>
   <ID>48</ID>
   <CLASS>V</CLASS>
-  <WORD>V_temp</WORD>
+  <WORD>V_result</WORD>
 </TOK>
 <TOK>
   <ID>49</ID>
@@ -252,7 +252,7 @@
 <TOK>
   <ID>51</ID>
   <CLASS>V</CLASS>
-  <WORD>V_dummy</WORD>
+  <WORD>V_temp</WORD>
 </TOK>
 <TOK>
   <ID>52</ID>
@@ -262,62 +262,62 @@
 <TOK>
   <ID>53</ID>
   <CLASS>reserved_keyword</CLASS>
-  <WORD>begin</WORD>
+  <WORD>num</WORD>
 </TOK>
 <TOK>
   <ID>54</ID>
   <CLASS>V</CLASS>
-  <WORD>V_result</WORD>
+  <WORD>V_dummy</WORD>
 </TOK>
 <TOK>
   <ID>55</ID>
-  <CLASS>equal</CLASS>
-  <WORD>=</WORD>
-</TOK>
-<TOK>
-  <ID>56</ID>
-  <CLASS>reserved_keyword</CLASS>
-  <WORD>add</WORD>
-</TOK>
-<TOK>
-  <ID>57</ID>
-  <CLASS>lparen</CLASS>
-  <WORD>(</WORD>
-</TOK>
-<TOK>
-  <ID>58</ID>
-  <CLASS>V</CLASS>
-  <WORD>V_a</WORD>
-</TOK>
-<TOK>
-  <ID>59</ID>
   <CLASS>comma</CLASS>
   <WORD>,</WORD>
 </TOK>
 <TOK>
+  <ID>56</ID>
+  <CLASS>reserved_keyword</CLASS>
+  <WORD>begin</WORD>
+</TOK>
+<TOK>
+  <ID>57</ID>
+  <CLASS>V</CLASS>
+  <WORD>V_result</WORD>
+</TOK>
+<TOK>
+  <ID>58</ID>
+  <CLASS>equal</CLASS>
+  <WORD>=</WORD>
+</TOK>
+<TOK>
+  <ID>59</ID>
+  <CLASS>reserved_keyword</CLASS>
+  <WORD>add</WORD>
+</TOK>
+<TOK>
   <ID>60</ID>
+  <CLASS>lparen</CLASS>
+  <WORD>(</WORD>
+</TOK>
+<TOK>
+  <ID>61</ID>
+  <CLASS>V</CLASS>
+  <WORD>V_a</WORD>
+</TOK>
+<TOK>
+  <ID>62</ID>
+  <CLASS>comma</CLASS>
+  <WORD>,</WORD>
+</TOK>
+<TOK>
+  <ID>63</ID>
   <CLASS>V</CLASS>
   <WORD>V_b</WORD>
 </TOK>
 <TOK>
-  <ID>61</ID>
+  <ID>64</ID>
   <CLASS>rparen</CLASS>
   <WORD>)</WORD>
-</TOK>
-<TOK>
-  <ID>62</ID>
-  <CLASS>semicolon</CLASS>
-  <WORD>;</WORD>
-</TOK>
-<TOK>
-  <ID>63</ID>
-  <CLASS>reserved_keyword</CLASS>
-  <WORD>print</WORD>
-</TOK>
-<TOK>
-  <ID>64</ID>
-  <CLASS>V</CLASS>
-  <WORD>V_result</WORD>
 </TOK>
 <TOK>
   <ID>65</ID>
@@ -326,33 +326,33 @@
 </TOK>
 <TOK>
   <ID>66</ID>
-  <CLASS>V</CLASS>
-  <WORD>V_temp</WORD>
+  <CLASS>reserved_keyword</CLASS>
+  <WORD>print</WORD>
 </TOK>
 <TOK>
   <ID>67</ID>
-  <CLASS>equal</CLASS>
-  <WORD>=</WORD>
-</TOK>
-<TOK>
-  <ID>68</ID>
   <CLASS>V</CLASS>
   <WORD>V_result</WORD>
 </TOK>
 <TOK>
-  <ID>69</ID>
+  <ID>68</ID>
   <CLASS>semicolon</CLASS>
   <WORD>;</WORD>
 </TOK>
 <TOK>
+  <ID>69</ID>
+  <CLASS>V</CLASS>
+  <WORD>V_temp</WORD>
+</TOK>
+<TOK>
   <ID>70</ID>
-  <CLASS>T</CLASS>
-  <WORD>return</WORD>
+  <CLASS>equal</CLASS>
+  <WORD>=</WORD>
 </TOK>
 <TOK>
   <ID>71</ID>
   <CLASS>V</CLASS>
-  <WORD>V_temp</WORD>
+  <WORD>V_result</WORD>
 </TOK>
 <TOK>
   <ID>72</ID>
@@ -361,11 +361,26 @@
 </TOK>
 <TOK>
   <ID>73</ID>
+  <CLASS>T</CLASS>
+  <WORD>return</WORD>
+</TOK>
+<TOK>
+  <ID>74</ID>
+  <CLASS>V</CLASS>
+  <WORD>V_temp</WORD>
+</TOK>
+<TOK>
+  <ID>75</ID>
+  <CLASS>semicolon</CLASS>
+  <WORD>;</WORD>
+</TOK>
+<TOK>
+  <ID>76</ID>
   <CLASS>reserved_keyword</CLASS>
   <WORD>end</WORD>
 </TOK>
 <TOK>
-  <ID>74</ID>
+  <ID>77</ID>
   <CLASS>rbrace</CLASS>
   <WORD>}</WORD>
 </TOK>
