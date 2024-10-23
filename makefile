@@ -1,7 +1,7 @@
-.PHONY: clean run-lexer run-parser run-lexer-parser run-symbol-table
+.PHONY: clean run-lexer run-parser run-lexer-parser run-symbol-table run-translationtra
 
 make:
-	@javac lexer/*.java parser/*.java symbol_table/*.java
+	@javac lexer/*.java parser/*.java symbol_table/*.java translation/*.java
 
 run-parser:
 	@java -cp . parser.Main
@@ -16,5 +16,8 @@ run-lexer-parser:
 run-symbol-table:
 	@java -cp . symbol_table.SymbolTableMain
 
+run-translation:
+	@java -cp . translation.Main
+
 clean:
-	@rm -f lexer/*.class parser/*.class symbol_table/*.class
+	@rm -f lexer/*.class parser/*.class symbol_table/*.class translation/*.class
