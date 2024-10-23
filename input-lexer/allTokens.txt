@@ -1,0 +1,7 @@
+main
+begin
+    V_x = 123 ;
+    V_y = -456.789 ;
+    print "HelloWorld" ;
+    F_func( V_a , V_b , V_c ) return V_result ;
+end

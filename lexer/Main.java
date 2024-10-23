@@ -43,7 +43,7 @@ public class Main {
             System.err.println("An error occurred while reading or writing files: " + e.getMessage());
             e.printStackTrace();
         } catch (Exception e) {
-            System.err.println("An error occurred during tokenization: " + e.getMessage());
+          
             e.printStackTrace();
         }
     }
