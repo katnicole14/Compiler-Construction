@@ -43,7 +43,7 @@ class Parser extends JFrame {
         syntaxTree.print(""); // Print syntax tree
         String xml = TreeToXML(syntaxTree); // Convert syntax tree to XML
         
-         writeXMLToFile(xml, "syntax_tree.xml"); // Write syntax tree to XML file
+         writeXMLToFile(xml, "parser/syntax_tree.xml"); // Write syntax tree to XML file
     }
 
     public static void main(String[] args) throws Exception {
