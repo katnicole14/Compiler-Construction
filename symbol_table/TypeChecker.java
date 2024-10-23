@@ -120,7 +120,7 @@ public class TypeChecker {
                     System.out.println("[DEBUG] VNAME detected with id: " + id);
     
                     if (type1 != ' ' && !id.isEmpty()) {
-                        updateSymbolTable(id, type1);
+                        //updateSymbolTable(id, type1);
                         System.out.println("[DEBUG] Symbol table updated with id=" + id + ", type=" + type1);
                         
                     }
@@ -192,7 +192,7 @@ public class TypeChecker {
                              
                                 String scopeId = getIdBySymbolName(scope);
                               
-                                char functionType  = getTypeFromSymbolTable(scopeId);
+                                String functionType  = getTypeFromSymbolTable(scopeId);
                                 System.out.println("scope :" + scope + ";scopeid: " + scopeId + " ,function type: " + functionType);
 
                                 System.out.println("[DEBUG] 'return' command detected");
@@ -202,7 +202,7 @@ public class TypeChecker {
                                 if (returnAtomicNode != null) {
                                     char atomicType = typeof(returnAtomicNode);
                                     System.out.println("[DEBUG] Atomic type for 'print': " + atomicType);
-                                    return atomicType == functionType || atomicType == functionType;
+                                    return atomicType == typeof(functionType) || atomicType == typeof(functionType);
                                 }
                                 System.out.println("[DEBUG] No ATOMIC node found for 'return' command");
                                 return false;
@@ -278,8 +278,8 @@ public class TypeChecker {
                     System.out.println("[DEBUG] Function ID: " + FuncId);
                     enterScope(getSymbol(funNode.get(0)));
                     // Update the symbol table with the function ID and type
-                    updateSymbolTable(FuncId, ftyp);
-                    System.out.println("[DEBUG] Updated symbol table with FuncId: " + FuncId + " and ftyp: " + ftyp);
+                    //updateSymbolTable(FuncId, ftyp);
+                    //System.out.println("[DEBUG] Updated symbol table with FuncId: " + FuncId + " and ftyp: " + ftyp);
 
                     List<Node> var1 = getChildrenNodes(studentInnerNodes.get(2));
                     List<Node> var2 = getChildrenNodes(studentInnerNodes.get(3));
@@ -288,10 +288,12 @@ public class TypeChecker {
                     String var2Id = getIdBySymbolName(getSymbol(var2.get(0)));
                     String var3Id = getIdBySymbolName(getSymbol(var3.get(0)));
                     char paramtype = 'n';
+
+                
                     // Update the symbol table with the function ID and type
-                    updateSymbolTable(var1Id, paramtype);
-                    updateSymbolTable(var2Id, paramtype);
-                    updateSymbolTable(var3Id, paramtype);
+                    updateSymbolTable(var1Id, "num");
+                    updateSymbolTable(var2Id, "num");
+                    updateSymbolTable(var3Id, "num");
                     
                     // Check types of specific nodes
                     char type3 = typeof(studentInnerNodes.get(2));
@@ -354,26 +356,26 @@ public class TypeChecker {
                      type2 = typeof(getSymbol(kid2.get(0)));
                      type3 = typeof(getSymbol(kid3.get(0)));   
                 
-                    if (type1 != ' ' && !id1.isEmpty()) {
-                        updateSymbolTable(id1, type1);
-                        System.out.println("[DEBUG] Symbol table updated with id1=" + id1 + ", type=" + type1);
-                    } else {
-                        System.out.println("[DEBUG] Skipped updating symbol table for id1. Type: " + type1 + ", ID: " + id1);
-                    }     
+                    // if (type1 != ' ' && !id1.isEmpty()) {
+                    //     updateSymbolTable(id1, type1);
+                    //     System.out.println("[DEBUG] Symbol table updated with id1=" + id1 + ", type=" + type1);
+                    // } else {
+                    //     System.out.println("[DEBUG] Skipped updating symbol table for id1. Type: " + type1 + ", ID: " + id1);
+                    // }     
                 
-                    if (type2 != ' ' && !id2.isEmpty()) {
-                        updateSymbolTable(id2, type2);
-                        System.out.println("[DEBUG] Symbol table updated with id2=" + id2 + ", type=" + type2);
-                    } else {
-                        System.out.println("[DEBUG] Skipped updating symbol table for id2. Type: " + type2 + ", ID: " + id2);
-                    }
+                    // if (type2 != ' ' && !id2.isEmpty()) {
+                    //     updateSymbolTable(id2, type2);
+                    //     System.out.println("[DEBUG] Symbol table updated with id2=" + id2 + ", type=" + type2);
+                    // } else {
+                    //     System.out.println("[DEBUG] Skipped updating symbol table for id2. Type: " + type2 + ", ID: " + id2);
+                    // }
                              
-                    if (type3 != ' ' && !id3.isEmpty()) {
-                        updateSymbolTable(id3, type3);
-                        System.out.println("[DEBUG] Symbol table updated with id3=" + id3 + ", type=" + type3);
-                    } else {
-                        System.out.println("[DEBUG] Skipped updating symbol table for id3. Type: " + type3 + ", ID: " + id3);
-                    }
+                    // if (type3 != ' ' && !id3.isEmpty()) {
+                    //     updateSymbolTable(id3, type3);
+                    //     System.out.println("[DEBUG] Symbol table updated with id3=" + id3 + ", type=" + type3);
+                    // } else {
+                    //     System.out.println("[DEBUG] Skipped updating symbol table for id3. Type: " + type3 + ", ID: " + id3);
+                    // }
                 
                 return true;
 
@@ -436,7 +438,7 @@ public class TypeChecker {
         }
         return nodeList.item(0);
     }
-    private void updateSymbolTable(String id, char type) {
+    private void updateSymbolTable(String id, String type) {
         System.out.println("Updating symbol for id: " + id);
 
         // Check if the id exists in vtable or ftable
@@ -472,15 +474,16 @@ public class TypeChecker {
                 case "VNAME":
                 String VarName = getIdBySymbolName(getSymbol(children.get(0)));
                 System.out.println("[DEBUG] Function ID: " + VarName);
-                char typ = getTypeFromSymbolTable(VarName);
-                return typ;
+                String typ = getTypeFromSymbolTable(VarName);
+                return typeof(typ);
+                
 
                 case "FNAME":
                     String funcName = getIdBySymbolName(getSymbol(children.get(0)));
                     System.out.println("[DEBUG] Function ID: " + funcName);
-                    char ty = getTypeFromSymbolTable(funcName);
-                    System.out.println("returning the function type " + ty);
-                    return ty;
+                    String fy = getTypeFromSymbolTable(funcName);
+                    System.out.println("returning the function type " + fy);
+                    return typeof(fy);
     
                 case "TERM":
                     System.out.println("[DEBUG] Node is of type TERM");
@@ -911,7 +914,8 @@ private boolean findSymbolInTable(Map<String, Symbol> table, String name) {
         // Return true if the input matches the pattern, false otherwise
         return input.matches(numberPattern);
     }
-    private char getTypeFromSymbolTable(String name) {
+
+    private String getTypeFromSymbolTable(String name) {
         System.out.println("name #####"+ name);
         // Check in the variable table
         if (vtable.containsKey(name)) {
@@ -926,7 +930,7 @@ private boolean findSymbolInTable(Map<String, Symbol> table, String name) {
         }
     
         System.out.println("Warning: " + name + " not found in the symbol table.");
-        return ' ';
+        return " ";
     }
 
     private String getSymbol(Node rootNode) {

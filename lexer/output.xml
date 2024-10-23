@@ -21,8 +21,8 @@
 </TOK>
 <TOK>
   <ID>5</ID>
-  <CLASS>reserved_keyword</CLASS>
-  <WORD>num</WORD>
+  <CLASS>T</CLASS>
+  <WORD>text</WORD>
 </TOK>
 <TOK>
   <ID>6</ID>
@@ -111,8 +111,8 @@
 </TOK>
 <TOK>
   <ID>23</ID>
-  <CLASS>V</CLASS>
-  <WORD>V_y</WORD>
+  <CLASS>N</CLASS>
+  <WORD>3</WORD>
 </TOK>
 <TOK>
   <ID>24</ID>

@@ -101,7 +101,7 @@ public Map<String, Symbol> getFtable(){
         List<String> childList = new ArrayList<>();  
         List<String> children = new ArrayList<>();   
         List<String> temp  = null;
-        char types = ' ';
+        String types = "";
         if (isFunction(terminal)) {
             // Function scope handling
             try {
@@ -111,6 +111,7 @@ public Map<String, Symbol> getFtable(){
                 childList = getChildren(grandparent);
                  
                 for (String child : childList) {
+                 
                     // Check your condition (e.g., if the child contains "special")
                     if (getSymbolByUNID(child).equals("VNAME")) {
                         // Add to childlist if condition is met
@@ -121,21 +122,16 @@ public Map<String, Symbol> getFtable(){
                     if (getSymbolByUNID(child).equals("FTYP")) {
                         // Add to childlist if condition is met
                         temp = getChildren(child);
-                       // types = getSymbolByUNID(temp.get(0));
+                        types = getSymbolByUNID(temp.get(0));
                     }
                 }
-
-               
+          
             } catch (Exception e) {
                 e.printStackTrace(); // Handle any exceptions (can log or rethrow if necessary)
             }
         
-         
             boolean inTable = findSymbolByName(terminal); // Check if the function is already in the symbol table
-            boolean declaration = "HEADER".equals(grandSymb); // Check if the grandparent is 'HEADER'
-
-           
-        
+            boolean declaration = "HEADER".equals(grandSymb); // Check if the grandparent is 'HEADER'  
             if (inTable && declaration) {
                 throwError("Function name conflict in scope", unid); // Conflict: function already declared in this scope
             } else if (!inTable && declaration) {
@@ -145,7 +141,7 @@ public Map<String, Symbol> getFtable(){
                 scopeStack.push(uniqueName); // Push the new unique function name onto the scope stack
                 ftable.put(unid, new Symbol(uniqueName, types, scope, children,terminal)); // Add the function to the symbol table
             } else if (terminal.equals("main")) {
-            ftable.put(unid, new Symbol(terminal, 'm', scopeStack.peek(),children,terminal )); // Store 'main' in the symbol table
+            ftable.put(unid, new Symbol(terminal, "main", scopeStack.peek(),children,terminal )); // Store 'main' in the symbol table
         } 
     }
     else if (isToken(terminal) && !isKeyword(terminal)) {
@@ -155,39 +151,55 @@ public Map<String, Symbol> getFtable(){
             grandparent = getParent(parent);
             grandSymb = getSymbolByUNID(grandparent);
             childList = getChildren(grandparent);
-
+        
             boolean local = grandSymb.equals("LOCVARS");
             boolean global = grandSymb.equals("GLOBVARS");
-            
             boolean parameter = grandSymb.equals("HEADER");
             boolean sameScope = findSymbolByNameInScope(terminal, scopeStack.peek());
+        
+             // Keep track of the previous child to determine the type
+            
+            for (String child : childList) {
+                // Debugging for processing each child
+                System.out.println("Debug: Processing child node: " + child);
 
-                 for (String child : childList) {
-                // Check your condition (e.g., if the child contains "special")
-             
-            if (parameter) {
-                temp = getChildren(child);
-               
-                
-            }
-             
-            }
-
+                if (getSymbolByUNID(child).equals("VTYP")) {
+                    // Add to childlist if condition is met
+                    temp = getChildren(child);
+                    types = getSymbolByUNID(temp.get(0));
+                }
+        
+                // If this child is a parameter, assign the type
+                if (parameter) {
+                    temp = getChildren(child);  // Assuming temp gets children of current child
+                    types = "num";  // Set type to "num" for parameters in this example
+                    System.out.println("Debug: Assigning type '" + types + "' to parameter '" + terminal + "'");
+                    String uniqueName = generateUniqueName(terminal);
+                    vtable.put(unid, new Symbol(uniqueName, types, scopeStack.peek(), terminal));
+                    System.out.println("Debug: Added parameter '" + terminal + "' to symbol table with type '" + types + "'");
+                } 
+                  // Handle variable conflicts in local or global scope
             if (sameScope && (local || global)) {
-                // If sameScope is true and grandparent is either "LOCVARS" or "GLOBVARS", raise an error
-                throwError("Variable name conflict in scope", unid); // Raise a variable name conflict
+                throwError("Variable name conflict in scope", unid);
             } else {
-                // If no conflict, add the new variable to the symbol table
-                if (local || global || parameter) {
-                String uniqueName = generateUniqueName(terminal);
-             
-                vtable.put(unid, new Symbol(uniqueName, ' ', scopeStack.peek(), terminal)); // Store variable in the symbol table
+                if (local || global) {
+                    String uniqueName = generateUniqueName(terminal);
+                    System.out.println("Debug: Adding variable '" + terminal + "' with type '" + types + "' to symbol table.");
+                    vtable.put(unid, new Symbol(uniqueName, types, scopeStack.peek(), terminal));
+                    System.out.println("Debug: Variable '" + terminal + "' added to symbol table under scope: " + (local ? "LOCAL" : "GLOBAL"));
+                }
             }
-        }
+        
+
+            }
+        
+          
+        
         } catch (Exception e) {
-            // Handle any exceptions
-            e.printStackTrace(); // Log or handle exceptions as necessary
+            e.printStackTrace();
         }
+          System.out.println("====================end=========================");
+    
 
 
 
