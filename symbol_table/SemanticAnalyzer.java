@@ -253,6 +253,7 @@ public Map<String, Symbol> getFtable(){
         errors.add("Error at " + unid + ": " + message);
     }
 
+   
     // Method to print the symbol table in a table format
     public void printSymbolTables() {
         printVTable();
@@ -322,6 +323,7 @@ private void printFTable() {
             }
         }
     }
+
 
 // Method to find a symbol by name in either vtable or ftable
 public boolean findSymbolByName(String name) {
