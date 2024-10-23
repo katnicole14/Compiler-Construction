@@ -10,7 +10,7 @@ public class SymbolTableMain {
         // analyzer.printSymbolTable();
         TypeChecker typeChecker = new TypeChecker(xmlFile,analyzer.getVtable() ,analyzer.getFtable());
         typeChecker.typeCheckers(xmlFile);
-         analyzer.printSymbolTables();
+   
        
     }
 }

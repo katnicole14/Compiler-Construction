@@ -1,0 +1,10 @@
+invalidVariable
+F_funcInvalid
+"UnclosedString
+123abc
+V_varWithNumber123
+F_123invalid
+-00.1
+Main
+hello
+123.abc
