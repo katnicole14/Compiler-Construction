@@ -1,0 +1,19 @@
+main 
+num V_a , num V_b , num V_c ,
+begin
+    V_a = 1;
+    V_b = 1;
+    V_c = 1;
+    V_d(V_a, V_b, V_c);
+    
+end
+
+void F_V ( V_d , V_e , V_f ) { 
+    num V_g , num V_h , num V_i , V_d, V_e, V_f, 
+    begin
+        V_d = add ( V_d , 1 ) ;
+        V_e = add ( V_e , 1 ) ;
+        V_f = add ( V_f , 1 ) ;
+    end
+}
+end

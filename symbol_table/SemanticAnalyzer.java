@@ -136,6 +136,10 @@ public Map<String, Symbol> getFtable(){
                 ftable.put(unid, new Symbol(terminal, "main", scopeStack.peek(), children, terminal));
             }
         } else if (isToken(terminal) && !isKeyword(terminal)) {
+            if (findSymbolByName(terminal)) {
+                throwError("cannot have main called recursively", types);
+                
+            }
             try {
                 parent = getParent(unid);
                 grandparent = getParent(parent);
