@@ -1,0 +1,20 @@
+main
+num V_a,
+num V_b,
+num V_c,
+
+begin
+V_c = 20 ;  
+end
+void F_foo(V_c, V_b, V_a){
+num V_loc1,
+num V_loc2,
+num V_loc3,
+
+begin
+print V_loc1;  
+end
+
+}
+
+end

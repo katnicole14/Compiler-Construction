@@ -17,7 +17,7 @@ public class Main {
         //     System.exit(1);
         // }
 
-        String inputFilePath = "input/input0.txt";
+        String inputFilePath = "input/main_004.txt";
         String outputFilePath = "lexer/output.xml";
 
         // Create a File object for the input file

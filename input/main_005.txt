@@ -1,0 +1,30 @@
+main
+num V_a,
+num V_b,
+text V_c,
+
+begin
+halt; halt; halt; halt; halt; if add(V_d, V_e)
+then 
+begin
+V_a = F_a(10 , 1 , V_g) ;  
+end
+
+else 
+begin
+ 
+end
+;  
+end
+num F_a(V_h, V_i, V_j){
+num V_k,
+num V_l,
+text V_m,
+begin
+ 
+ return V_k;
+end
+
+}
+
+end
