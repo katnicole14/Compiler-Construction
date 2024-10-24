@@ -568,14 +568,18 @@ private Node parseCOND() throws Exception {
     Node condNode = new Node("COND");
     Token token = getCurrentToken();
     System.out.println("Current token in parseCOND: " + (token != null ? token.getWord() : "null"));
-    this.simplecase = true;
-    if (token != null) {
-        // Check if the current token is a binary operator
-        if (Arrays.asList("or", "and", "eq", "grt", "add", "sub", "mul", "div").contains(token.getWord())) {
+    
+    switch (token.getWord()) {
+        case "sqrt":
+        case "not":
+        condNode.addChild(parseCOMPOSIT());
+      
+            break;
+        default:
             System.out.println("Binary operator found: " + token.getWord());
             // Attempt to parse as SIMPLE
             try {
-             System.out.println("HERE AT SIMPLE");
+                System.out.println("HERE AT SIMPLE");
                 condNode.addChild(parseSIMPLE());
             } catch (Exception e) {
                 System.out.println("Exception in parseSIMPLE: " + e.getMessage());
@@ -585,13 +589,8 @@ private Node parseCOND() throws Exception {
                 resetPosition();
                 condNode.addChild(parseCOMPOSIT());
             }
-        } else {
-            System.out.println("Not a binary operator, attempting to parse as COMPOSIT.");
-            // If it's not a binary operator, try parsing as COMPOSIT directly
-            condNode.addChild(parseCOMPOSIT());
-        }
     }
-
+    
     System.out.println("Exiting parseCOND");
     return condNode;
 }
@@ -653,8 +652,8 @@ private Node parseCOMPOSIT() throws Exception {     // Parse COMPOSIT -> BINOP, 
                 System.out.println("Unary operator found in COMPOSIT: " + token.getWord());
                 compositNode.addChild(parseUNOP());
                 expect("lparen");
-                compositNode.addChild(parseSIMPLE());
-                expect("rparen");
+                    compositNode.addChild(parseSIMPLE());
+                    expect("rparen");
                 break;
             default:
                 System.out.println("Unexpected token in COMPOSIT: " + token.getWord());
@@ -681,9 +680,7 @@ private Node parseUNOP() throws Exception {     // Parse UNOP -> not, UNOP -> sq
             case "sqrt":    // UNOP -> not, UNOP -> sqrt
                 unopNode.addChild(new Node(token.getWord()));
                 consumeToken();
-                expect("lparen");
-                unopNode.addChild(parseARG());
-                expect("rparen");
+             
                 break;
             default:
                 throw new Exception("Expected UNOP but found: " + token.getWord());
@@ -691,8 +688,8 @@ private Node parseUNOP() throws Exception {     // Parse UNOP -> not, UNOP -> sq
     } else {
         throw new Exception("Expected UNOP but found: null");
     }
-    
-    System.out.println("Exiting parseUNOP");
+    System.out.println("TOKEN causing iisues here: " + token.getWord());
+    System.out.println("Exiting parse UNOP");
     return unopNode;
 }
 
