@@ -1,0 +1,15 @@
+main
+
+begin
+ 
+end
+main num V_a, text V_b, begin
+print V_a; V_a = 5 ;  
+end
+num F_sum(V_x, V_x, V_y){
+    num V_local, num V_local2, num V_print,
+    begin
+        return V_local;  
+    end
+}
+end

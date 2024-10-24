@@ -309,7 +309,9 @@ class Parser extends JFrame {
             switch (token.getWord()) {
                 case "end":     // Check if token is 'end'
                     algoNode.addChild(new Node("end"));
+                    System.out.println("BEFORE Consumption:" + getCurrentToken().getWord());
                     consumeToken();
+                    System.out.println("here inside instruct end and has been consumed  next symbol:" + getCurrentToken().getWord());
                     break;
                 default:
                     throw new Exception("Expected 'end' but found: " + token.getWord());
@@ -330,6 +332,7 @@ class Parser extends JFrame {
             switch (currentToken.getWord()) {
                 case "end":
                     // Do nothing, return empty INSTRUC node, INSTRUC -> ε
+                    
                     break;
                 default:
                     instrucNode.addChild(parseCOMMAND());
@@ -806,12 +809,19 @@ private Node parseBINOP() throws Exception {
     private Node parseBODY() throws Exception {     // Parse BODY -> PROLOG LOCVARS ALGO EPILOG SUBFUNCS
         Node bodyNode = new Node("BODY");
         expect("lbrace");       // PROLOG
+        System.out.println("before open braces: " + getCurrentToken().getWord());
         bodyNode.addChild(parsePROLOG());
+        System.out.println("after open braces: " + getCurrentToken().getWord());
         bodyNode.addChild(parseLOCVARS());
+        System.out.println("after local variables: " + getCurrentToken().getWord());
         bodyNode.addChild(parseALGO());
+        System.out.println("after algo: " + getCurrentToken().getWord());
         bodyNode.addChild(parseEPILOG());
+        System.out.println("after closing braces " + getCurrentToken().getWord());
         bodyNode.addChild(parseSUBFUNCS());
-        expect("rbrace");       // EPILOG
+        System.out.println("after other funcyions: " + getCurrentToken().getWord());
+        // expect("rbrace");       // EPILOG
+        System.out.println("after r braces: " + getCurrentToken().getWord());
         return bodyNode;
     }
 
