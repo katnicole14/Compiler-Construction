@@ -1,0 +1,8 @@
+v7:=10 ; 
+v11:=20 ; 
+PRINT VNAME
+ ; 
+ STOP 
+ ; 
+ REM END 
+ STOP 
