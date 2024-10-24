@@ -34,9 +34,7 @@ class Parser extends JFrame {
 
     public static void parseInit() throws Exception {
         List<Token> tokens = XMLconvert("lexer/output.xml"); // Parse XML file to get tokens
-        System.out.println("Generating syntax tree");
-        System.out.println();
-        Parser parser = new Parser(tokens); // Create parser object
+                        Parser parser = new Parser(tokens); // Create parser object
         Node syntaxTree = parser.parse(); // Parse tokens to generate syntax tree
         SwingUtilities.invokeLater(() -> { // Display syntax tree
             TreeVisualizer frame = new TreeVisualizer(syntaxTree); // Create TreeVisualizer object
@@ -224,10 +222,8 @@ class Parser extends JFrame {
             }
         }
         progNode.addChild(parseGLOBVARS());     // Add GLOBVARS to PROG node
-        System.out.println("DONE WITH THIS ALGO");
-        progNode.addChild(parseALGO());     // Add ALGO to PROG node
-      System.out.println("DONE WITH THIS ALGO");
-        progNode.addChild(parseFUNCTIONS());        // Add FUNCTIONS to PROG node
+                progNode.addChild(parseALGO());     // Add ALGO to PROG node
+              progNode.addChild(parseFUNCTIONS());        // Add FUNCTIONS to PROG node
        
         return progNode;
     }
@@ -290,37 +286,27 @@ class Parser extends JFrame {
     }
 
     private Node parseALGO() throws Exception {
-        System.out.println("entering algo");
-        // Parse ALGO -> begin INSTRUC end
+                // Parse ALGO -> begin INSTRUC end
         Node algoNode = new Node("ALGO");
         Token token = getCurrentToken();
     
         // Check for 'begin' token
         if (token != null && "begin".equals(token.getWord())) {
-            System.out.println("HERE AT ALGO: " + token.getWord());
-            algoNode.addChild(new Node("begin"));  // Add 'begin' to ALGO node
+                        algoNode.addChild(new Node("begin"));  // Add 'begin' to ALGO node
             consumeToken();  // Move to the next token
         } else {
             throw new Exception("Expected 'begin' but found: " + (token != null ? token.getWord() : "null"));
         }
     
         // Parse INSTRUC part
-        System.out.println("HERE ENTERING INSTRUC: " + getCurrentToken().getWord());
-        algoNode.addChild(parseINSTRUC());  // Parse INSTRUC and add it to ALGO node
-         System.out.println("just added instruct");
-        // Check for 'end' token
+                algoNode.addChild(parseINSTRUC());  // Parse INSTRUC and add it to ALGO node
+                 // Check for 'end' token
         token = getCurrentToken();
-        System.out.println(" THE OBVIOUS CURRENT" +getCurrentToken().getWord());
-        if (token != null && "end".equals(token.getWord())) {
+                if (token != null && "end".equals(token.getWord())) {
 
             algoNode.addChild(new Node("end"));  // Add 'end' to ALGO node
-            System.out.println("BEFORE Consumption: " + token.getWord());
-           System.out.println("size of tokkens" + tok.size() + "current index"  + currIndex);
-          
-           System.out.println(currIndex + 1);
-           if(tok.size() == currIndex + 1){
-             System.out.println("end of tokens");
-            //  consumeToken();
+                                             if(tok.size() == currIndex + 1){
+                         //  consumeToken();
 
            }
            else{
@@ -328,31 +314,26 @@ class Parser extends JFrame {
            }
         
               // Move to the next token
-            System.out.println("Consumed 'end', next symbol: " + getCurrentToken().getWord());
-        } else {
+                    } else {
             throw new Exception("Expected 'end' but found: " + (token != null ? token.getWord() : "null"));
         }
     
-        System.out.println("exiting algo");
-        return algoNode;
+                return algoNode;
     }
     
 
     private Node parseINSTRUC() throws Exception {      // Parse INSTRUC -> ε, INSTRUC -> COMMAND ; INSTRUC
         Node instrucNode = new Node("INSTRUC");
-        System.out.println(" HERE AT iNSTRUCT INSIDE WITH "+getCurrentToken().getWord());
-        Token currentToken = getCurrentToken();     
+                Token currentToken = getCurrentToken();     
     
         if (currentToken != null) {
             switch (currentToken.getWord()) {
                 case "end":
-                System.out.println("I think i am here ");
-                    // Do nothing, return empty INSTRUC node, INSTRUC -> ε
+                                    // Do nothing, return empty INSTRUC node, INSTRUC -> ε
                     
                     break;
                 default:
-                System.out.println("I think i am here ");
-                    instrucNode.addChild(parseCOMMAND());
+                                    instrucNode.addChild(parseCOMMAND());
                     currentToken = getCurrentToken();
                     if (currentToken != null && currentToken.getTokenClass().equals("semicolon")) {
                         instrucNode.addChild(new Node(";"));
@@ -392,8 +373,7 @@ class Parser extends JFrame {
                 default:
                     switch (token.getTokenClass()) {
                         case "V":       // COMMAND -> ASSIGN
-                        System.out.println(" HERE AT Asign  "+getCurrentToken().getWord());
-                            commandNode.addChild(parseASSIGN());
+                                                    commandNode.addChild(parseASSIGN());
                             break;
                         case "F":       // COMMAND -> CALL
                             commandNode.addChild(parseCALL());
@@ -463,9 +443,7 @@ class Parser extends JFrame {
         Node assignNode = new Node("ASSIGN");
         assignNode.addChild(parseVNAME());
         Token token = getCurrentToken();
-        System.out.println(" HERE AT ASSIGN INSIDE"+getCurrentToken().getWord());
-        
-        if (token != null) {
+                if (token != null) {
             switch (token.getWord()) {
                 case "< input":     // ASSIGN -> VNAME < input
                     consumeToken();
@@ -503,19 +481,15 @@ class Parser extends JFrame {
         Node branchNode = new Node("BRANCH");
         expect("reserved_keyword"); // if
         branchNode.addChild(parseCOND());
-        System.out.println(" CURRENT TOKEN "+getCurrentToken().getWord());
-        expect("reserved_keyword"); // then
-        System.out.println(" CURRENT TOKEN BEFORE ALGO "+getCurrentToken().getWord());
-        branchNode.addChild(parseALGO());
-        System.out.println(" CURRENT TOKEN AFTER ALGO "+getCurrentToken().getWord());
-        expect("reserved_keyword"); // else
+                expect("reserved_keyword"); // then
+                branchNode.addChild(parseALGO());
+                expect("reserved_keyword"); // else
         branchNode.addChild(parseALGO());
         return branchNode;
     }
 
     private Node parseTERM() throws Exception {     // Parse TERM -> ATOMIC, TERM -> CALL, TERM -> OP
-        System.out.println(" HERE AT TERM "+getCurrentToken().getWord());
-        Node termNode = new Node("TERM");
+                Node termNode = new Node("TERM");
         Token token = getCurrentToken();
         
         if (token != null) {
@@ -529,8 +503,7 @@ class Parser extends JFrame {
                     termNode.addChild(parseCALL());
                     break;
                 default:    // TERM -> OP
-                System.out.println(" HERE AT OP "+getCurrentToken().getWord());
-                    termNode.addChild(parseOP());
+                                    termNode.addChild(parseOP());
                     break;
             }
         }
@@ -584,52 +557,38 @@ class Parser extends JFrame {
 
     //TODO: make unamibiguous
 private Node parseCOND() throws Exception {
-    System.out.println("Entering parseCOND");
-    Node condNode = new Node("COND");
+        Node condNode = new Node("COND");
     Token token = getCurrentToken();
-    System.out.println("Current token in parseCOND: " + (token != null ? token.getWord() : "null"));
-    
-    switch (token.getWord()) {
+        switch (token.getWord()) {
         case "sqrt":
         case "not":
         condNode.addChild(parseCOMPOSIT());
       
             break;
         default:
-            System.out.println("Binary operator found: " + token.getWord());
-            // Attempt to parse as SIMPLE
+                        // Attempt to parse as SIMPLE
             try {
-                System.out.println("HERE AT SIMPLE");
-                condNode.addChild(parseSIMPLE());
+                                condNode.addChild(parseSIMPLE());
             } catch (Exception e) {
-                System.out.println("Exception in parseSIMPLE: " + e.getMessage());
-                // If parsing SIMPLE fails, we need to backtrack
-                System.out.println("Failed to parse SIMPLE, trying COMPOSIT...");
-                // Reset the position to try COMPOSIT
+                                // If parsing SIMPLE fails, we need to backtrack
+                                // Reset the position to try COMPOSIT
                 resetPosition();
                 condNode.addChild(parseCOMPOSIT());
             }
     }
     
-    System.out.println("Exiting parseCOND");
-    return condNode;
+        return condNode;
 }
 
 // Method to reset the position to the last valid state
 private void resetPosition() {
-    System.out.println("Resetting position. Current index: " + currIndex + ", last valid position: " + lastValidPosition);
-    this.currIndex = this.currIndex - (lastValidPosition+2); // lastValidPosition should be set before calling parseSIMPLE
-    System.out.println("GOING BACK TO STATE " + getCurrentToken().getWord());
-}
+        this.currIndex = this.currIndex - (lastValidPosition+2); // lastValidPosition should be set before calling parseSIMPLE
+    }
 
 private Node parseSIMPLE() throws Exception {    // Parse SIMPLE -> BINOP
-    System.out.println("Entering parseSIMPLE");
-    Node simpleNode = new Node("SIMPLE");
+        Node simpleNode = new Node("SIMPLE");
 
-    System.out.println("Entering parseSIMPLE");
-
-    System.out.println("Binary operator found in SIMPLE: " + getCurrentToken().getWord());
-    simpleNode.addChild(parseBINOP());
+            simpleNode.addChild(parseBINOP());
     expect("lparen");
     simpleNode.addChild(parseATOMIC());
     expect("comma");
@@ -639,12 +598,9 @@ private Node parseSIMPLE() throws Exception {    // Parse SIMPLE -> BINOP
 }
 
 private Node parseCOMPOSIT() throws Exception {     // Parse COMPOSIT -> BINOP, COMPOSIT -> UNOP
-    System.out.println("Entering parseCOMPOSIT");
-    Node compositNode = new Node("COMPOSIT");
+        Node compositNode = new Node("COMPOSIT");
     Token token = getCurrentToken();
-    System.out.println("Current token in parseCOMPOSIT: " + (token != null ? token.getWord() : "null"));
-    
-    if (token != null) {
+        if (token != null) {
         switch (token.getWord()) {
             case "or":
             case "and":
@@ -654,47 +610,36 @@ private Node parseCOMPOSIT() throws Exception {     // Parse COMPOSIT -> BINOP, 
             case "sub":
             case "mul":
             case "div":     // COMPOSIT -> BINOP 
-                System.out.println("Binary operator found in COMPOSIT: " + token.getWord());
-                compositNode.addChild(parseBINOP());
+                                compositNode.addChild(parseBINOP());
                 expect("lparen");
                 compositNode.addChild(parseSIMPLE());
-                System.out.println("DONE WITH THE FIRST SIMPLE, CURRENT TOKENT IS " + getCurrentToken().getWord());
-                expect("comma");
-                System.out.println("ENTERING WITH THE SECOND SIMPLE, CURRENT TOKENT IS " + getCurrentToken().getWord());
-                compositNode.addChild(parseSIMPLE());
-                System.out.println("DONE WITH THE SECOND SIMPLE, CURRENT TOKEN IS " + getCurrentToken().getWord());
-                expect("rparen");
+                                expect("comma");
+                                compositNode.addChild(parseSIMPLE());
+                                expect("rparen");
                 
                 
                 break;
             case "not":
             case "sqrt":     // COMPOSIT -> UNOP
-                System.out.println("Unary operator found in COMPOSIT: " + token.getWord());
-                compositNode.addChild(parseUNOP());
+                                compositNode.addChild(parseUNOP());
                 expect("lparen");
                     compositNode.addChild(parseSIMPLE());
                     expect("rparen");
                 break;
             default:
-                System.out.println("Unexpected token in COMPOSIT: " + token.getWord());
-                throw new Exception("Expected COMPOSIT but found: " + token.getWord());
+                                throw new Exception("Expected COMPOSIT but found: " + token.getWord());
         }
     } else {
-        System.out.println("Token is null in COMPOSIT");
-        throw new Exception("Expected COMPOSIT but found: null");
+                throw new Exception("Expected COMPOSIT but found: null");
     }
     
-    System.out.println("Exiting parseCOMPOSIT");
-    return compositNode;
+        return compositNode;
 }
 
 private Node parseUNOP() throws Exception {     // Parse UNOP -> not, UNOP -> sqrt
-    System.out.println("Entering parseUNOP");
-    Node unopNode = new Node("UNOP");
+        Node unopNode = new Node("UNOP");
     Token token = getCurrentToken();
-    System.out.println("Current token in UNOP: " + (token != null ? token.getWord() : "null"));
-
-    if (token != null) {
+        if (token != null) {
         switch (token.getWord()) {
             case "not":
             case "sqrt":    // UNOP -> not, UNOP -> sqrt
@@ -708,9 +653,7 @@ private Node parseUNOP() throws Exception {     // Parse UNOP -> not, UNOP -> sq
     } else {
         throw new Exception("Expected UNOP but found: null");
     }
-    System.out.println("TOKEN causing iisues here: " + token.getWord());
-    System.out.println("Exiting parse UNOP");
-    return unopNode;
+            return unopNode;
 }
 
 private Node parseBINOP() throws Exception {
@@ -726,8 +669,7 @@ private Node parseBINOP() throws Exception {
 
         binopNode.addChild(new Node(token.getWord())); // Add the operator (eq, and, etc.)
         consumeToken();  // Move past the operator
-        System.out.println(" CURRENT TOKEN AFTER end  "+getCurrentToken().getWord());
-        System.out.println("Consumed token, moving to the next...");  // Debugging
+                System.out.println("Consumed token, moving to the next...");  // Debugging
 
 
    
@@ -766,23 +708,18 @@ private Node parseBINOP() throws Exception {
     }
     private Node parseFUNCTIONS() throws Exception {        // Parse FUNCTIONS -> ε, FUNCTIONS -> DECL FUNCTIONS
         Node functionsNode = new Node("FUNCTIONS");
-        System.out.println("entered function ");
-        Token token = getCurrentToken();
-        System.out.println("last token:" + getCurrentToken().getWord());
-       if(getCurrentToken().getWord().equals( "end")){
-    System.out.println("about to consume token");
-             consumeToken();
+                Token token = getCurrentToken();
+               if(getCurrentToken().getWord().equals( "end")){
+                 consumeToken();
        }
       else{
         while (token != null) {
-            System.out.println("in the while loop");
-            switch (token.getTokenClass()) {
+                        switch (token.getTokenClass()) {
                 case "reserved_keyword":        // FUNCTIONS -> DECL FUNCTIONS
                     functionsNode.addChild(parseDECL());
                     break;
                 default:        // FUNCTIONS -> ε
-                System.out.println("funtions is null");
-                    return functionsNode;
+                                    return functionsNode;
             }
             token = getCurrentToken();
         }
@@ -834,20 +771,13 @@ private Node parseBINOP() throws Exception {
     private Node parseBODY() throws Exception {     // Parse BODY -> PROLOG LOCVARS ALGO EPILOG SUBFUNCS
         Node bodyNode = new Node("BODY");
         expect("lbrace");       // PROLOG
-        System.out.println("before open braces: " + getCurrentToken().getWord());
-        bodyNode.addChild(parsePROLOG());
-        System.out.println("after open braces: " + getCurrentToken().getWord());
-        bodyNode.addChild(parseLOCVARS());
-        System.out.println("after local variables: " + getCurrentToken().getWord());
-        bodyNode.addChild(parseALGO());
-        System.out.println("after algo: " + getCurrentToken().getWord());
-        bodyNode.addChild(parseEPILOG());
-        System.out.println("after closing braces " + getCurrentToken().getWord());
-        bodyNode.addChild(parseSUBFUNCS());
-        System.out.println("after other funcyions: " + getCurrentToken().getWord());
-        // expect("rbrace");       // EPILOG
-        System.out.println("after r braces: " + getCurrentToken().getWord());
-        return bodyNode;
+                bodyNode.addChild(parsePROLOG());
+                bodyNode.addChild(parseLOCVARS());
+                bodyNode.addChild(parseALGO());
+                bodyNode.addChild(parseEPILOG());
+                bodyNode.addChild(parseSUBFUNCS());
+                // expect("rbrace");       // EPILOG
+                return bodyNode;
     }
 
     //TODO: make parse {

@@ -7,7 +7,7 @@ begin
 halt; halt; halt; halt; halt; if add(V_d, V_e)
 then 
 begin
-V_a = F_a(10 , 1 , V_g) ;  
+V_a = F_a(10 , 1 , V_a) ;  
 end
 
 else 
@@ -19,10 +19,10 @@ end
 num F_a(V_h, V_i, V_j){
 num V_k,
 num V_l,
-text V_m,
+num V_m,
 begin
  
- return V_k;
+ return V_b;
 end
 
 }

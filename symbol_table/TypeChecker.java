@@ -127,85 +127,105 @@ public class TypeChecker {
                     if (studentInnerNodes.isEmpty()) {
                         return true;
                     }
-    
-    
                             boolean commandCheck = typeChecker(studentInnerNodes.get(0));
                             boolean instruc2Check = typeChecker(studentInnerNodes.get(2)); // Assuming INSTRUC2 is the next sibling
-    
                             return commandCheck && instruc2Check;   
                 
     
-                case "COMMAND":
-    
-                    for (Node childNode : studentInnerNodes) {
-                        String childSymbol = getSymbol(childNode);
-    
-                        switch (childSymbol) {
-                            case "skip":
-                                return true;
-                            case "halt":
-                                return true;
-                            case "print":
-                               Node atomicNode = studentInnerNodes.get(1);
-                                if (atomicNode != null) {
-                                    char atomicType = typeof(atomicNode);
-                                    return atomicType == 'n' || atomicType == 't';
-                                }
-                                return false;
-                            case "return":
-                                String scope = currentScope();
-                             
-                                String scopeId = getIdBySymbolName(scope);
+                            case "COMMAND":
+                        
+                            for (Node childNode : studentInnerNodes) {
+                                String childSymbol = getSymbol(childNode);
                               
-                                String functionType  = getTypeFromSymbolTable(scopeId);
+                        
+                                switch (childSymbol) {
+                                    case "skip":
+                                    
+                                        return true;
+                                    case "halt":
+                                      
+                                        return true;
+                                    case "print":
+                                    
+                                        Node atomicNode = studentInnerNodes.get(1);
+                                        if (atomicNode != null) {
+                                            char atomicType = typeof(atomicNode);
+      
+                                            return atomicType == 'n' || atomicType == 't';
+                                        }
+                                        return false;
+                                    case "return":
+                                        String scope = currentScope();
 
-                                Node returnAtomicNode =studentInnerNodes.get(1);
+                        
+                                        String scopeId = getIdBySymbolName(scope);
+                                     
+                        
+                                        String functionType = getTypeFromSymbolTable(scopeId);
+                               
+                        
+                                        Node returnAtomicNode = studentInnerNodes.get(1);
+                                        if (returnAtomicNode != null) {
+                                            char atomicType = typeof(returnAtomicNode);
+
+                                            return atomicType == typeof(functionType) || atomicType == typeof(functionType);
+                                        }
                              
+                                        return false;
+                                    case "ASSIGN":
+                             
+                                        return typeChecker(childNode);
+                                    case "CALL":
+                                        String callNodeId = getTextContent(childNode, "UNID");
 
-                                if (returnAtomicNode != null) {
-                                    char atomicType = typeof(returnAtomicNode);
-                                    return atomicType == typeof(functionType) || atomicType == typeof(functionType);
+                                        return typeof(childNode) == 'v';
+                                    case "BRANCH":
+
+                                        return typeChecker(childNode);
+                                    default:
+
+                                        return false;
                                 }
-                                return false;
+                            }
 
-                              
+                            return false;
+                        
+    
                             case "ASSIGN":
-                                return typeChecker(childNode);
-                            case "CALL":
-                               String callNodeId = getTextContent(childNode, "UNID"); // Replace "ID" with the actual identifier key used in your node structure
-                                return typeof(childNode) == 'v';
-                            case "BRANCH":
-                                return typeChecker(childNode);
-                            default:
-                                return false;
-                        }
-                    }
-                    return false;
-    
-                case "ASSIGN":
-    
-                    boolean inputCheck = false;
-                    boolean termCheck = false;
-    
-                    for (Node childNode : studentInnerNodes) {
-                        String childSymbol = getSymbol(childNode);
-    
-                        if ("input".equals(childSymbol)) {
-                            inputCheck = typeof(studentInnerNodes.get(0)) == 'n';
-                        }
-    
-                        if ("TERM".equals(childSymbol)) {
-                            termCheck = typeof(studentInnerNodes.get(0)) == typeof(childNode);
-                        }
-                    }
-    
-                    return inputCheck || termCheck;
+
+
+                        
+                            boolean inputCheck = false;
+                            boolean termCheck = false;
+                        
+                            for (Node childNode : studentInnerNodes) {
+                                String childSymbol = getSymbol(childNode);
+                           
+                        
+                                if ("input".equals(childSymbol)) {
+                                    inputCheck = typeof(studentInnerNodes.get(0)) == 'n';
+
+                                }
+                        
+                                if ("TERM".equals(childSymbol)) {
+                                    termCheck = typeof(studentInnerNodes.get(0)) == typeof(childNode);
+                                
+                                }
+                            }
+                        
+                   
+                            return inputCheck || termCheck;
+                        
     
                 case "BRANCH":
     
                     Node condNode = getChildNodeByTagName(node, "COND");
-                    Node algo1Node = studentInnerNodes.get(3);
-                    Node algo2Node = studentInnerNodes.get(5);
+                    Node algo1Node = studentInnerNodes.get(1);
+                    System.out.println();
+                    System.out.println(getSymbol(algo1Node));
+                    
+                    Node algo2Node = studentInnerNodes.get(2);
+                    System.out.println(getSymbol(algo2Node));
     
                     if (condNode != null && algo1Node != null && algo2Node != null) {
                         char condType = typeof(condNode);
@@ -291,20 +311,6 @@ public class TypeChecker {
                      type2 = typeof(getSymbol(kid2.get(0)));
                      type3 = typeof(getSymbol(kid3.get(0)));   
                 
-                    // if (type1 != ' ' && !id1.isEmpty()) {
-                    //     updateSymbolTable(id1, type1);
-                    // } else {
-                    // }     
-                
-                    // if (type2 != ' ' && !id2.isEmpty()) {
-                    //     updateSymbolTable(id2, type2);
-                    // } else {
-                    // }
-                             
-                    // if (type3 != ' ' && !id3.isEmpty()) {
-                    //     updateSymbolTable(id3, type3);
-                    // } else {
-                    // }
                 
                 return true;
 
@@ -398,18 +404,29 @@ public class TypeChecker {
                     String fy = getTypeFromSymbolTable(funcName);
                     return typeof(fy);
     
-                case "TERM":
-    
+                    case "TERM":
+
+             
+                
                     // Loop through the children
                     for (Node child : children) {
                         String childSymbol = getSymbol(child);
-    
+                    
+                
                         // Check if child symbol is "ATOMIC"
                         if ("ATOMIC".equals(childSymbol)) {
+                          
                             List<Node> atomic = getChildrenNodes(child);
+                          
+                
                             char atomicType = typeof(atomic.get(0));
+                         
+                
                             return atomicType;
                         }
+                    
+                  
+                
     
                         // Check if child symbol is "CALL"
                         if ("CALL".equals(childSymbol)) {
@@ -417,6 +434,7 @@ public class TypeChecker {
                         }
     
                         if ("OP".equals(childSymbol)) {
+                           
                             char callType = typeof(child);
                             return callType;
                         }
@@ -447,47 +465,55 @@ public class TypeChecker {
                     }
     
                     case "OP":
-                    List<Node> opchildren = getChildrenNodes(node);//binp or unop
-                    String operation =getSymbol(getChildrenNodes(opchildren.get(0)).get(0));
-                    List<Node> ren = getChildrenNodes(opchildren.get(0)); //binop children
-
-                    if (getSymbol(children.get(0)) .equals( "UNOP")) {
+                    List<Node> opchildren = getChildrenNodes(node); // binop or unop
+                    String operation = getSymbol(getChildrenNodes(opchildren.get(0)).get(0));
                 
-                        Node unopNode = opchildren.get(0); // UNOP
-                        Node argNode = ren.get(1); // ARG
+                    if (getSymbol(children.get(0)).equals("UNOP")) {
+                        System.out.println("Detected UNOP");
+                
+                       
                 
                         char unopType = typeof(operation);
-                        char argType = typeof(argNode);
+                        char argType = typeof(children.get(1));
                 
+                      
                 
                         if (unopType == 'b' && argType == 'b') {
+        
                             return 'b';  // typeof(OP) = 'b'
                         } else if (unopType == 'n' && argType == 'n') {
+                        
                             return 'n';  // typeof(OP) = 'n'
                         } else {
+                      
                             return 'u';  // typeof(OP) = 'u'
                         }
-                    } else if (getSymbol(children.get(0)).equals( "BINOP")) {
-                
-                     
-                        Node argNode1 = ren.get(1); 
-                        Node argNode2 = ren.get(2); 
-                
+                    } else if (getSymbol(children.get(0)).equals("BINOP")) {
+                    
+                        
+
+                      
                         char binopType = typeof(operation);
-                        char argType1 = typeof(argNode1);
-                        char argType2 = typeof(argNode2);
+                        char argType1 = typeof(children.get(1));
+                        char argType2 = typeof(children.get(2));
                 
+                    
                 
                         if (binopType == 'b' && argType1 == 'b' && argType2 == 'b') {
+                          
                             return 'b'; // bool-type
                         } else if (binopType == 'n' && argType1 == 'n' && argType2 == 'n') {
+                        
                             return 'n'; // numeric type
                         } else if (binopType == 'c' && argType1 == 'n' && argType2 == 'n') {
+                          
                             return 'b'; // comparison-type, yields a boolean result
                         } else {
+                        
                             return 'u'; // undefined type
                         }
                     }
+                
                 
                 case "ARG":
     

@@ -18,3 +18,4 @@ run-symbol-table:
 
 clean:
 	@rm -f lexer/*.class parser/*.class symbol_table/*.class
+	
