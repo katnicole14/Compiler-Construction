@@ -3,7 +3,7 @@ package parser;
 import java.util.ArrayList;
 import java.util.List;
 
-class Node {
+public class Node {
     private String name;
     private List<Node> children = new ArrayList<>();
     private int id;

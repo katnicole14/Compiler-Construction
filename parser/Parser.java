@@ -6,10 +6,11 @@ import java.io.*;
 import java.util.*;
 import javax.swing.*;
 
-class Parser extends JFrame {
+public class Parser extends JFrame {
     private int currIndex = 0; // Current token index
     private static int curr = 0; // Current unique ID
     private List<Token> tok; // List of tokens
+    private static Node syntaxTree;
 
     public Parser(List<Token> tokens) { // Constructor
         this.tok = tokens;
@@ -35,20 +36,20 @@ class Parser extends JFrame {
         System.out.println("Generating syntax tree");
         System.out.println();
         Parser parser = new Parser(tokens); // Create parser object
-        Node syntaxTree = parser.parse(); // Parse tokens to generate syntax tree
+        syntaxTree = parser.parse(); // Parse tokens to generate syntax tree
         SwingUtilities.invokeLater(() -> { // Display syntax tree
             TreeVisualizer frame = new TreeVisualizer(syntaxTree); // Create TreeVisualizer object
             frame.setVisible(true); // Set frame visibility
         });
-        syntaxTree.print(""); // Print syntax tree
+        //syntaxTree.print(""); // Print syntax tree
         String xml = TreeToXML(syntaxTree); // Convert syntax tree to XML
         
          writeXMLToFile(xml, "parser/syntax_tree.xml"); // Write syntax tree to XML file
     }
 
-    public static void main(String[] args) throws Exception {
-        parseInit(); // Initialize parsing
-    }
+    // public static void main(String[] args) throws Exception {
+    //     parseInit(); // Initialize parsing
+    // }
     //region: XML conversion
     public static String TreeToXML(Node root) { // Convert syntax tree to XML for semantic table
         StringBuilder xml = new StringBuilder(); // Create StringBuilder object
@@ -205,6 +206,13 @@ class Parser extends JFrame {
 
     public Node parse() throws Exception {
         return parsePROG();     // Parse PROG
+    }
+
+    public static Node getTree() {
+        if (syntaxTree == null) {
+            System.out.println("Error: Syntax tree is null.");
+        }
+        return syntaxTree;
     }
 
     private Node parsePROG() throws Exception {     // Parse PROG -> main GLOBVARS ALGO FUNCTIONS

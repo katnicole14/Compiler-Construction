@@ -1,523 +1,438 @@
 package translation;
-import java.util.function.Function;
-import org.w3c.dom.*;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import parser.Node;
 
-import symbol_table.SemanticAnalyzer;
 import symbol_table.Symbol;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import java.io.*;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-
-//FUNCTION TO TRAVERSE THE TREE/XML FILE
-//STRUCTURE TO STORE THE INTERMEDIATE CODE [txt file]
-//TRANSLATION RULES FOR EACH NODE TYPE IN THE SYNTAX TREE
-//SYMBOL TABLE
-//ERROR HANDLING
 public class Translator {
+    private Map<String, Symbol> VTable;
+    private Map<String, Symbol> FTable;
+    private int lineNumber = 10; // Starting line number for BASIC code
+    private int stackSize = 30; // Size of the runtime stack
 
-    // private IntermediateCode intermediateCode = new IntermediateCode();
-    private Map<String, Symbol> vTable;
-    private Document document;
-    private File xmlFile;
-
-    public Translator(SemanticAnalyzer analyzer, File xmlFile) {
-        this.vTable = analyzer.getVtable();
-        this.xmlFile = xmlFile;
+    public Translator(Map<String, Symbol> VTable, Map<String, Symbol> FTable) {
+        this.VTable = VTable;
+        this.FTable = FTable;
     }
 
-    // Main translation method
-    public String translate() {
-        try {
-            System.out.println("In translate function...");
-            // Parse the XML document
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            document = builder.parse(xmlFile);
-            document.getDocumentElement().normalize();
-
-            // Start translating from the <ROOT> node
-            Element root = (Element) document.getElementsByTagName("ROOT").item(0);
-            System.out.println("Element root: " + root.getNodeName());
-            String progCode = translateNode(root);
-
-           // After traversal, write the intermediate code to a text file
-           writeIntermediateCodeToFile("intermediate_code.txt", progCode);
-        } catch (Exception e) {
-            e.printStackTrace();
+    public String translate(Node syntaxTree, String outputFile) {
+        if (syntaxTree == null) {
+            return "Error: Syntax tree is null.";
         }
+        
+        StringBuilder code = new StringBuilder();
+        translateProg(syntaxTree, code);
+        writeToFile(code.toString(), outputFile);
         return "Translation complete";
     }
 
-    // Recursive function to traverse the tree and translate nodes
-    private String translateNode(Node node) {
-        System.out.println("In translateNode, with node: " + node);
-        String nodeName = node.getNodeName().trim();
-        System.out.println("Node name: " + nodeName);
-        String symbValue = ((Element) node).getElementsByTagName("SYMB").item(0).getTextContent();
-        System.out.println("Symb value: " + symbValue);
-
-        switch (symbValue) {
-            case "PROG":
-                return translateProg(node);
-            case "GLOBVARS":
-            case "VTYP":
-                // Ignore these nodes as per the rules
-                return "";
-            case "ALGO":
-                return translateAlgo(node);
-            case "INSTRUC":
-                return translateInstruc(node);
-            case "COMMAND":
-                return translateCommand(node);
-            case "ASSIGN":
-                return translateAssign(node);
-            case "TERM":
-                return translateTerm(node);
-            case "ATOMIC":
-                return translateAtomic(node);
-            case "CONST":
-                return translateConst(node);
-            case "CALL":
-                return translateCall(node);
-            case "OP":
-                return translateOp(node);
-            case "ARG":
-                return translateArg(node);
-            case "UNOP":
-                return translateUnop(node);
-            case "BINOP":
-                return translateBinop(node);
-            case "BRANCH":
-                return translateBranch(node);
-            case "COND":
-                return translateCond(node);
-            case "SIMPLE":
-                return translateSimple(node);
-            case "COMPOSIT":
-                return translateComposit(node);
-            case "FNAME":
-                return translateFname(node);
-            case "VNAME":
-                return translateVname(node);
-            default:
-                return "";
-        }
-    }
-
-    //VNAME
     private String translateVname(Node node) {
-    //     String terminalValue = "";
-    //     NodeList children = ((Element) node).getElementsByTagName("ID"); //get the children of the Vname node by ID TAG
-    //     if (children.getLength() > 0) {
-    //         for (int i = 0; i < children.getLength(); i++) { //for each child
-    //             int childId = Integer.parseInt(children.item(i).getTextContent()); //get the ID of the child
-    //             Node childNode = findNodeById(childId); //find the node by ID
-    //             terminalValue = ((Element) childNode).getElementsByTagName("TERMINAL").item(i).getTextContent(); //get their terminal value
-    //         }
+        String vname = node.getName();
+
+        if (VTable == null) {
+            System.err.println("Error: VTable is null.");
+            return "Error: VTable is null.";
+        }
+
+        if (VTable.isEmpty()) {
+            System.err.println("Error: VTable is empty.");
+            return "Error: VTable is empty.";
+        }
+
+        for (Symbol symbol : VTable.values()) {
+            String symb = symbol.getSymb();
+            if (symb.equals(vname)) {
+                vname = symbol.getName();
+                return vname;
+            }
+        }
+        return vname;
         
-    //     // Search the vTable using the terminal value to get the unique name
-    //     Optional<Map.Entry<String, Symbol>> entry = vTable.entrySet().stream().filter(e -> e.getValue().getSymb().equals(terminalValue)).findFirst();
-
-    //     if (entry.isPresent()) {
-    //         return entry.get().getValue().getName(); // Return the unique name
-    //     } else {
-    //         return "No variable found"; // Return an empty string if the symbol is not found in the vTable
-    //     }
-    // }
-    return "VNAME node translation";
     }
 
-    //PROG
-    private String translateProg(Node node) {
-        System.out.println("In translateProg...");
-        System.out.println("Node: " + node.getNodeName());
-        String aCode = "";
-        String fCode = "";
+    private void translateProg(Node node, StringBuilder code) {
+        StringBuilder aCode = new StringBuilder();
+        StringBuilder fCode = new StringBuilder();
+        Node aNode;
+        Node fNode;
 
-        NodeList children = ((Element) node).getElementsByTagName("ID"); //get the children of the Prog node by ID TAG
-        for (int i = 0; i < children.getLength(); i++) { //for each child
-            int childId = Integer.parseInt(children.item(i).getTextContent()); //get the ID of the child
-            System.out.println("Child ID: " + childId);
-            Node childNode = findNodeById(childId); //find the node by ID
-            System.out.println("Child node: " + childNode);
+        List<Node> children = node.getChildren();
+        if (children.size() < 3) {
+            System.err.println("Error in PROG");
+            return;
+        }
 
-            NodeList symbNodes = ((Element) childNode).getElementsByTagName("SYMB");
-            if (symbNodes.getLength() > 0) {
-                String symbValue = symbNodes.item(0).getTextContent(); //won't work for terminals 
-                System.out.println("Symb value: " + symbValue);
+        for (Node childNode : children) {
+            //System.out.println("Child node: " + childNode);
+    
+            String symbValue = childNode.getName();
+            if (symbValue != null) {
+                //System.out.println("Symb value: " + symbValue);
                 if (symbValue.equals("ALGO")) {
-                    aCode = translateNode(childNode);
+                    aNode = children.get(2);
+                    translateAlgo(aNode, aCode);
                 } else if (symbValue.equals("FUNCTIONS")) {
-                    fCode = translateNode(childNode);
+                    fNode = children.get(3);
+                    //translateFunctions(fNode, fCode);
                 }
             }
-            //else its main            
         }
-        System.out.println("aCode: " + aCode);
-        System.out.println("fCode: " + fCode);
-        return aCode + " STOP " + fCode;
+
+        code.append(aCode).append(" STOP ").append(fCode);
     }
 
-    //ALGO
-    private String translateAlgo(Node node) {
-        NodeList children = ((Element) node).getElementsByTagName("ID");
-        for (int i = 0; i < children.getLength(); i++) {
-            int childId = Integer.parseInt(children.item(i).getTextContent());
-            Node childNode = findNodeById(childId);
-            NodeList symbNodes = ((Element) childNode).getElementsByTagName("SYMB");
-            if (symbNodes.getLength() > 0) {
-                String symbValue = symbNodes.item(0).getTextContent(); //won't work for terminals 
+    private void translateAlgo(Node node, StringBuilder code) {
+        List<Node> children = node.getChildren();
+        Node instrNode;
+        if (children.isEmpty()) {
+            System.err.println("Error in ALGO");
+            return;
+        }
+
+        for (Node childNode : children) {
+            System.out.println("Child node: " + childNode);
+    
+            String symbValue = childNode.getName();
+            if (symbValue != null) {
+                System.out.println("Symb value: " + symbValue);
                 if (symbValue.equals("INSTRUC")) {
-                    return translateNode(childNode);
+                    instrNode = children.get(1);
+                    translateInstruc(instrNode, code);
                 }
             }
-        }
-        return "";
+        }        
     }
 
-    //INSTRUC
-    private String translateInstruc(Node node) {
-        NodeList children = ((Element) node).getElementsByTagName("ID"); 
-        if (children.getLength() == 0) {//if INSTRUC's children are empty (nullable production rule)
-            return " REM END ";
-        } 
-        else {
-            String commandCode = "";
-            String instruc2Code = "";
-            for (int i = 0; i < children.getLength(); i++) {
-                int childId = Integer.parseInt(children.item(i).getTextContent());
-                Node childNode = findNodeById(childId);
-                NodeList symbNodes = ((Element) childNode).getElementsByTagName("SYMB");
-                if (symbNodes.getLength() > 0) {
-                    String symbValue = symbNodes.item(0).getTextContent(); //gets the value of the symb tag
+    private void translateInstruc(Node node, StringBuilder code) {
+        List<Node> children = node.getChildren();
+        Node cmdNode; 
+        Node instrNode;
+
+        if (children.isEmpty()) {
+            code.append(" REM END \n");
+        } else {
+            if (children.size() < 2) {
+                System.err.println("Error in INSTRUC");
+                return;
+            }
+
+            for (Node childNode : children) {
+                System.out.println("Child node: " + childNode);
+        
+                String symbValue = childNode.getName();
+                if (symbValue != null) {
+                    System.out.println("Symb value: " + symbValue);
                     if (symbValue.equals("COMMAND")) {
-                        commandCode = translateNode(childNode);
+                        cmdNode = children.get(0);
+                        translateCommand(cmdNode, code);
+                        code.append(" ; \n");
                     } else if (symbValue.equals("INSTRUC")) {
-                        instruc2Code = translateNode(childNode);
+                        instrNode = children.get(2);
+                        translateInstruc(instrNode, code);
                     }
                 }
             }
-            return commandCode + instruc2Code;
         }
     }
 
-    //COMMAND
-    private String translateCommand(Node node) {
-        NodeList children = ((Element) node).getElementsByTagName("ID");
-        NodeList symbNodes = ((Element) node).getElementsByTagName("SYMB"); //will return null for terminals
-        String symbValue;
-    
-        //check if the child is a terminal or not
-        if (symbNodes.getLength() > 0) {
-            symbValue = symbNodes.item(0).getTextContent();
+    private void translateCommand(Node node, StringBuilder code) {
+        List<Node> children = node.getChildren();
+        for (Node childNode : children) {
+            String childName = childNode.getName();
 
-            switch(symbValue)
-            {
+            switch (childName) {
+                case "skip":
+                    code.append(" REM DO NOTHING \n");
+                    break;
+                case "halt":
+                    code.append(" STOP \n");
+                    break;
+                case "print":
+                    Node atomNode = node.getChildren().get(1); // ATOMIC node
+                    String atomCode = translateAtomic(atomNode);
+                    code.append("PRINT ").append(atomCode).append("\n");
+                    break;
+                case "return":
+                    code.append("RETURN\n");
+                    break;
                 case "ASSIGN":
-                return translateAssign(node);
-            case "CALL":
-                return translateCall(node);
-            case "BRANCH":
-                return translateBranch(node);
-            }
-        } 
-        else {
-            NodeList terminalNodes = ((Element) node).getElementsByTagName("TERMINAL");
-            if (terminalNodes.getLength() > 0) {
-                symbValue = terminalNodes.item(0).getTextContent();
-
-                if (symbValue.equals("skip")) {
-                    return " REM DO NOTHING ";
-                } else if (symbValue.equals("halt")) {
-                    return " STOP ";
-                } else if (children.getLength() == 2) {
-                    Node atomicNode = findNodeById(Integer.parseInt(children.item(0).getTextContent()));
-                    return "PRINT " + " " + translateNode(atomicNode);
-                }
-            } else {
-                return "No SYMB or TERMINAL tag found"; // No SYMB or TERMINAL tag found
+                    Node assignNode = node.getChildren().get(0); // ASSIGN node
+                    translateAssign(assignNode, code);
+                    break;
+                case "CALL":
+                    Node callNode = node.getChildren().get(0); // CALL node
+                    translateCall(callNode, code);
+                    break;
+                case "BRANCH":
+                    Node branchNode = node.getChildren().get(0); // BRANCH node
+                    translateBranch(branchNode, code);
+                    break;
             }
         }
-        return "Command translation";
     }
 
-    //ASSIGN
-    private String translateAssign(Node node) {
-        // NodeList children = ((Element) node).getElementsByTagName("ID");
-        // Node vnameNode = findNodeById(Integer.parseInt(children.item(0).getTextContent()));
-        // Node mathsymbol = findNodeById(Integer.parseInt(children.item(1).getTextContent()));
-        // Node termNode = findNodeById(Integer.parseInt(children.item(2).getTextContent()));
-
-        // if()
-        // {
-        //     String vnameCode = translateNode(vnameNode);
-        //     return "INPUT" + " " + vnameCode;
-        // }
-        // else if()
-        // {}
-
-        
-        // String termCode = translateNode(termNode);
-
-        // return vnameCode + " := " + termCode;
-        return "ASSIGN node translation";
-
-
-        // //ASSIGN
-    // private String translate_ASSIGN(Assign assign) {
-    //     String varname = translate_VNAME(VName vname); // Assume the new name is already in the Symbol Table
-    //     return "INPUT" + " " + varname;
-    // } 
-    }
-
-    //TERM
-    private String translateTerm(Node node) {
-        NodeList children = ((Element) node).getElementsByTagName("ID");
-        Node childNode = findNodeById(Integer.parseInt(children.item(0).getTextContent()));
-        return translateNode(childNode);
-    }
-
-    //ATOMIC
     private String translateAtomic(Node node) {
-        NodeList children = ((Element) node).getElementsByTagName("ID");
-        Node childNode = findNodeById(Integer.parseInt(children.item(0).getTextContent()));
-        String symbValue = ((Element) childNode).getElementsByTagName("SYMB").item(0).getTextContent();
-
-        if (symbValue.equals("VNAME")) {
-            return translateAtomic(childNode);
-        } else if (symbValue.equals("CONST")) {
-            return translateConst(childNode);
+        List<Node> children = node.getChildren();
+        if (children.size() < 1) {
+            System.err.println("Error in ATOMIC");
+            return "";
         }
-        return "";
+
+        for (Node childNode : children) { // For each child
+            System.out.println("Child node: " + childNode);
+    
+            String childName = childNode.getName();
+            System.out.println("Child name: " + childName);
+            if (childName.equals("VNAME")) {
+                return translateVname(childNode);
+            } else if (childName.equals("CONST")) {
+                return translateConst(childNode);
+            }
+        }
+        return "Error in ATOMIC";
     }
 
-    //CONST
     private String translateConst(Node node) {
-        // Get the child node
-        NodeList children = ((Element) node).getElementsByTagName("ID");
-        if (children.getLength() == 0) {
-            return ""; // Handle the case where there is no child node
+        String constant = node.getChildren().get(0).getName();
+        if (constant.matches("\\d+")) {
+            return constant;
+        } else if (constant.startsWith("\"") && constant.endsWith("\"")) {
+            return constant;
+        } else {
+            return "Received node is neither a text or number";
         }
-        Node child = children.item(0);
-    
-        // Retrieve the terminal value
-        String terminalValue = ((Element) child).getElementsByTagName("TERMINAL").item(0).getTextContent();
-    
-        // Return the translated value
-        return terminalValue.matches("\\d+") ? terminalValue : "\"" + terminalValue + "\"";
-    
-    
-    //CONST
-    // private String translateConst(Const constant) {
-    //     if (constant instanceof NumConst) {
-    //         return " " + ((NumConst) constant).value + " ";
-    //     } else if (constant instanceof TextConst) {
-    //         return " \"" + ((TextConst) constant).value + "\" ";
-    //     }
-    //     return "";
-    // }
     }
 
-    //CALL
-    private String translateCall(Node node) {
-        // NodeList children = ((Element) node).getElementsByTagName("ID");
-        // Node fnameNode = findNodeById(Integer.parseInt(children.item(0).getTextContent()));
-        // Node atomic1Node = findNodeById(Integer.parseInt(children.item(1).getTextContent()));
-        // Node atomic2Node = findNodeById(Integer.parseInt(children.item(2).getTextContent()));
-        // Node atomic3Node = findNodeById(Integer.parseInt(children.item(3).getTextContent()));
+    private void translateAssign(Node node, StringBuilder code) {
+        List<Node> children = node.getChildren();
+        Node vnNode;
+        String vnCode;
+        if (children.size() < 3) {
+            System.err.println("Error in ASSIGN");
+            return;
+        }
 
-        // String fname = ((Element) fnameNode).getElementsByTagName("TERMINAL").item(0).getTextContent();
-        // String newNameForFname = symbolTable.get(fname);
+        vnNode = children.get(0).getChildren().get(0);
+        vnCode = translateVname(vnNode); 
 
-        // String p1 = translateNode(atomic1Node);
-        // String p2 = translateNode(atomic2Node);
-        // String p3 = translateNode(atomic3Node);
-
-        // return "CALL_" + newNameForFname + "(" + p1 + "," + p2 + "," + p3 + ")";
-        return "CALL node translation";
-    
-        //  //CALL
-    // private String translate_CALL(Call call) {
-    //     String p1 = translateAtomic(call.atomic1);
-    //     String p2 = translateAtomic(call.atomic2);
-    //     String p3 = translateAtomic(call.atomic3);
-    //     String newNameForFName = call.fname; // Assume the new name is already in the Symbol Table
-    //     return "CALL_" + newNameForFName + "(" + p1 + "," + p2 + "," + p3 + ")";
-    // }
+        if (children.get(1).getName().equals("< input")) {
+            code.append("INPUT ").append(vnCode);
+        } else {
+            Node tNode = children.get(2);
+            String tCode = translateTerm(tNode);
+            code.append(vnCode).append(":=").append(tCode);
+        }
     }
 
-    //OP
-    private String translateOp(Node node) {
-        // NodeList children = ((Element) node).getElementsByTagName("ID");
-        // Node unopNode = findNodeById(Integer.parseInt(children.item(0).getTextContent()));
-        // Node argNode = findNodeById(Integer.parseInt(children.item(1).getTextContent()));
+    private String translateTerm(Node node) {
+        Node childNode = node.getChildren().get(0); //should always be 1 child
+        String childName = childNode.getName();
 
-        // String opName = translateNode(unopNode);
-        // String place1 = translateNode(argNode);
-
-        // return "place := " + opName + "(" + place1 + ")";
-        return "OP node translation";
-
-
-
-        // place = newvar();
-        // code = TransExp(Exp, vtable, ftable,place);
-        // op =transop(getopname(unop));
-        // code ++ [place:= op place]
+        if(childName.equals("ATOMIC"))
+            return translateAtomic(childNode);
+        else if(childName.equals("CALL"))
+        {
+            StringBuilder callCode = new StringBuilder();
+            translateCall(childNode, callCode);
+            return callCode.toString();
+        } else if (childName.equals("OP"))
+        {
+            StringBuilder opCode = new StringBuilder();
+            translateOp(childNode, opCode);
+            return opCode.toString();
+        } else {
+            return "Incorrect structure for TERM";
+        }
     }
 
-    //ARG
+    private void translateCall(Node node, StringBuilder code) {
+        List<Node> children = node.getChildren();
+        if (children.size() < 4) {
+            System.err.println("Error in CALL");
+            return;
+        }
+
+        Node fNode = children.get(0); 
+        Node atomic1 = children.get(1);
+        Node atomic2 = children.get(2); 
+        Node atomic3 = children.get(3);
+
+        String fName = translateFname(fNode.getChildren().get(0));
+        String p1 = translateAtomic(atomic1);
+        String p2 = translateAtomic(atomic2);
+        String p3 = translateAtomic(atomic3);
+
+        code.append("CALL_").append(fName).append("(").append(p1).append(",").append(p2).append(",").append(p3).append(")");
+    }
+
+    private void translateOp(Node node, StringBuilder code) {
+        String opName = node.getChildren().get(0).getName();
+        if(opName.equals("UNOP"))
+        {
+            Node aNode = node.getChildren().get(0);
+            String aCode = translateArg(aNode);
+            code.append("SQR(").append(aCode).append(")");
+        }
+        else if(opName.equals("BINOP"))
+        {
+            Node a1Node = node.getChildren().get(0).getChildren().get(1); // ARG1 node
+            Node a2Node = node.getChildren().get(0).getChildren().get(2);; // ARG2 node
+            String arg1Code = translateArg(a1Node);
+            String arg2Code = translateArg(a2Node);
+            String binop = translateBINOP(node.getChildren().get(0).getChildren().get(0).getName());
+            code.append(arg1Code).append(" ").append(binop).append(" ").append(arg2Code);
+            
+        } else{
+            System.err.println("Error in OP");
+            return;
+        }
+    }
+
     private String translateArg(Node node) {
-        NodeList children = ((Element) node).getElementsByTagName("ID");
-        Node childNode = findNodeById(Integer.parseInt(children.item(0).getTextContent()));
-        return translateNode(childNode);
-    }
+        Node childNode = node.getChildren().get(0);
+        String childName = childNode.getName();
 
-    //UNOP
-    private String translateUnop(Node node) {
-        String terminalValue = ((Element) node).getElementsByTagName("TERMINAL").item(0).getTextContent();
-        if (terminalValue.equals("not")) {
-            return "!";
-        } else if (terminalValue.equals("sqrt")) {
-            return "SQR";
+        if(childName.equals("ATOMIC"))
+            return translateAtomic(childNode);
+        else if(childName.equals("OP"))
+        {
+            StringBuilder opCode = new StringBuilder();
+            translateOp(childNode, opCode);
+            return opCode.toString();
+        } else{
+            return "Error in ARG";
         }
-        return "";
     }
 
-    //BINOP
-    private String translateBinop(Node node) {
-        NodeList children = ((Element) node).getElementsByTagName("ID");
-        Node childNode = findNodeById(Integer.parseInt(children.item(0).getTextContent()));  
-        String terminalValue = ((Element) node).getElementsByTagName("TERMINAL").item(0).getTextContent();
-        switch (terminalValue) {
-            case "eq":
-                return " = ";
-            case "grt":
-                return " > ";
-            case "add":
-                return " + ";
-            case "sub":
-                return " - ";
-            case "mul":
-                return " * ";
-            case "div":
-                return " / ";
+    private String translateUnop(String unop) {
+        switch (unop) {
+            case "not":
+                return "!";
+            case "sqrt":
+                return "SQR";
             default:
                 return "";
         }
-
-
-        // arg  = newlabel();
-        // code1 = Transcond(Cond1, arg, labelt, vtable, ftable);
-        // code2 = Transcond(Cond2, labelt, labelf, vtable, ftable);
-        // code1 ++ [LABEL arg] ++ code2
     }
 
-    //BRANCH
-    private String translateBranch(Node node) {
-        // Implement translation logic for BRANCH node
-        //if the COND is a COMPOSIT
-
-        //if the COND is a SIMPLE
-        // label1 = newLabel()
-        // label2 = newLabel()
-        // label3 = newLabel()
-        // code1 = Transcond(Cond, label1, label2, vtable, ftable)
-        // code2 = Transstat(Stat1, vtable, ftable)
-        // code3 = Transstat(Stat2, vtable, ftable)
-        // code1 ++ [LABEL label1] ++ code2 ++ [GOTO label3, LABEL label2] ++ code3 ++ [LABEL label3]
-
-
-
-
-        return "BRANCH node translation";
-
-
-        // //BRANCH
-    // private String translate_BRANCH(Branch branch) {
-    //     String condCode = translateCondition(branch.cond);
-    //     String algo1Code = translate_ALGO(branch.algo1);
-    //     String algo2Code = translate_ALGO(branch.algo2);
-    //     return "IF " + condCode + " THEN " + algo1Code + " ELSE " + algo2Code;
-    // }
+    private String translateBINOP(String binop) {
+        switch (binop) {
+            case "or":
+                return "||";
+            case "and":
+                return "&&";
+            case "eq":
+                return "=";
+            case "grt":
+                return ">";
+            case "add":
+                return "+";
+            case "sub":
+                return "-";
+            case "mul":
+                return "*";
+            case "div":
+                return "/";
+            default:
+                return "";
+        }
     }
 
-    //COND
+    private void translateBranch(Node node, StringBuilder code) {
+        List<Node> children = node.getChildren();
+        if (children.size() < 3) {
+            System.err.println("Error in BRANCH");
+            return;
+        }
+
+        Node condNode = children.get(0); 
+        Node algo1Node = children.get(1); 
+        Node algo2Node = children.get(2);
+
+        String cCode = translateCond(condNode);
+        StringBuilder a1Code = new StringBuilder();
+        translateAlgo(algo1Node, a1Code);
+        StringBuilder a2Code = new StringBuilder();
+        translateAlgo(algo2Node, a2Code);
+
+        code.append("IF ").append(cCode).append(" THEN ").append(a1Code).append("\n");
+        code.append("GOTO ").append(a2Code).append("\n");
+    }
+
     private String translateCond(Node node) {
-        // Implement translation logic for COND node
-        return "COND node translation";
+        Node childNode = node.getChildren().get(0);
+        String childName = childNode.getName();
+
+        if(childName.equals("SIMPLE"))
+            return translateSimple(childNode);
+        else if(childName.equals("COMPOSIT"))
+            return translateComposit(childNode);
+        else
+            return "Error in COND";
     }
 
-    //SIMPLE
     private String translateSimple(Node node) {
-        // Implement translation logic for SIMPLE node
-        return "SIMPLE node translation";
+        List<Node> children = node.getChildren();
+        if (children.size() < 3) {
+            System.err.println("Error in SIMPLE");
+            return "";
+        }
+
+        String binOp = translateBINOP(children.get(0).getName());
+        String arg1 = translateAtomic(children.get(1));
+        String arg2 = translateAtomic(children.get(2));
+
+        return arg1 + " " + binOp + " " + arg2;
     }
 
-    //COMPOSIT
     private String translateComposit(Node node) {
-        // Implement translation logic for COMPOSIT node
-        return "COMPOSIT node translation";
+        List<Node> children = node.getChildren();
+        if (children.size() < 3) {
+            System.err.println("Error: COMPOSIT node does not have enough children.");
+            return "";
+        }
+
+        Node childNode = children.get(0);
+        String childName = childNode.getName();
+        if(childName.equals("BINOP"))
+        {
+            String binOp = translateBINOP(childNode.getName());
+            String s1 = translateSimple(children.get(1));
+            String s2 = translateSimple(children.get(2));
+            return s1 + " " + binOp + " " + s2;
+        }
+        else if(childName.equals("UNOP"))
+        {
+            Node simpleNode = children.get(1);
+            String unOp = translateUnop(childNode.getName());
+            String simple = translateSimple(simpleNode);
+            return unOp + "(" + simple + ")";
+        }
+        else
+            return "Error in COMPOSIT";
     }
 
-    //FNAME
     private String translateFname(Node node) {
-        // String fname = ((Element) node).getElementsByTagName("TERMINAL").item(0).getTextContent();
-        // String newName = symbolTable.get(fname);
-        // if (newName == null) {
-        //     throw new RuntimeException("Function name " + fname + " not found in symbol table.");
-        // }
-        // return newName;
-        return "FNAME node translation";
-    }
-
-    //Helper function
-    private Node findNodeById(int id) {
-        return findNodeByIdRecursive(document.getDocumentElement(), id);
-    }
-
-    private Node findNodeByIdRecursive(Node currentNode, int id) {
-        System.out.println("In findNodeByIdRecursive...");
-        System.out.println("Current node: " + currentNode);
-
-        if (currentNode == null) {
-            System.out.println("Current node is null");
-            return null;
-        }
-
-        // Check if the current node has the target UNID
-        NodeList unidList = ((Element) currentNode).getElementsByTagName("UNID");
-        if (unidList.getLength() > 0 && Integer.parseInt(unidList.item(0).getTextContent()) == id) {
-            return currentNode;
-        }
-
-        // Recursively search in child nodes
-        NodeList children = currentNode.getChildNodes();
-        for (int i = 0; i < children.getLength(); i++) {
-            Node childNode = children.item(i);
-            if (childNode.getNodeType() == Node.ELEMENT_NODE) {
-                System.out.println("Child node: " + childNode.getNodeName());
-                Node foundNode = findNodeByIdRecursive(childNode, id);
-                if (foundNode != null) {
-                    return foundNode;
-                }
+        String fname = node.getName(); //F_sum
+        String fUniqueName = "";
+        for (Symbol symbol : FTable.values()) {
+            if (symbol.getSymb().equals(fname)) {
+                 fUniqueName = symbol.getName();
             }
         }
 
-        return null;
+        if(fUniqueName != "")
+            return fUniqueName;
+        else
+            return "Could not find function name in FTable";
     }
 
-    // private String getTextContent(Node node, String tagName) {
-    //     return ((Element) node).getElementsByTagName(tagName).item(0).getTextContent();
-    // }
-
-    private void writeIntermediateCodeToFile(String filePath, String code) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+    private void writeToFile(String code, String outputFile) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
             writer.write(code);
         } catch (IOException e) {
             e.printStackTrace();

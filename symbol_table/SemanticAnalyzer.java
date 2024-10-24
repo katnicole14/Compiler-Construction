@@ -174,15 +174,6 @@ public Map<String, Symbol> getFtable(){
                 e.printStackTrace();
             }
         }
-<<<<<<< HEAD
-        } catch (Exception e) {
-            // Handle any exceptions
-            e.printStackTrace(); // Log or handle exceptions as necessary
-        }
-    }
-     
-=======
->>>>>>> feature/semantics
     }
     
     
