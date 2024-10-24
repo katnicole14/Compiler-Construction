@@ -11,7 +11,7 @@ class Parser extends JFrame {
     private static int curr = 0; // Current unique ID
     private List<Token> tok; // List of tokens
     private int lastValidPosition;
-    private boolean simplecase;
+    private int endcases = 0; //
 
     public Parser(List<Token> tokens) { // Constructor
         this.tok = tokens;
@@ -207,6 +207,7 @@ class Parser extends JFrame {
 
     public Node parse() throws Exception {
         return parsePROG();     // Parse PROG
+       //);
     }
 
     private Node parsePROG() throws Exception {     // Parse PROG -> main GLOBVARS ALGO FUNCTIONS
@@ -223,8 +224,11 @@ class Parser extends JFrame {
             }
         }
         progNode.addChild(parseGLOBVARS());     // Add GLOBVARS to PROG node
+        System.out.println("DONE WITH THIS ALGO");
         progNode.addChild(parseALGO());     // Add ALGO to PROG node
+      System.out.println("DONE WITH THIS ALGO");
         progNode.addChild(parseFUNCTIONS());        // Add FUNCTIONS to PROG node
+       
         return progNode;
     }
 
@@ -285,43 +289,54 @@ class Parser extends JFrame {
         return vNameNode;
     }
 
-    private Node parseALGO() throws Exception {     // Parse ALGO -> begin INSTRUC end
-        Node algoNode = new Node("ALGO");       // Create ALGO node
+    private Node parseALGO() throws Exception {
+        System.out.println("entering algo");
+        // Parse ALGO -> begin INSTRUC end
+        Node algoNode = new Node("ALGO");
         Token token = getCurrentToken();
-        System.out.println(" HERE AT ALGO "+getCurrentToken().getWord());
-        if (token != null) {
-            switch (token.getWord()) {
-                case "begin":       // Check if token is 'begin'
-                    algoNode.addChild(new Node("begin"));
-                    consumeToken();
-                    break;
-                default:
-                    throw new Exception("Expected 'begin' but found: " + token.getWord());
-            }
+    
+        // Check for 'begin' token
+        if (token != null && "begin".equals(token.getWord())) {
+            System.out.println("HERE AT ALGO: " + token.getWord());
+            algoNode.addChild(new Node("begin"));  // Add 'begin' to ALGO node
+            consumeToken();  // Move to the next token
         } else {
-            throw new Exception("Expected 'begin' but found: null");
+            throw new Exception("Expected 'begin' but found: " + (token != null ? token.getWord() : "null"));
         }
-        System.out.println(" HERE ENTERING INSTRUC "+getCurrentToken().getWord());
-        algoNode.addChild(parseINSTRUC());      // Add INSTRUC to ALGO node
+    
+        // Parse INSTRUC part
+        System.out.println("HERE ENTERING INSTRUC: " + getCurrentToken().getWord());
+        algoNode.addChild(parseINSTRUC());  // Parse INSTRUC and add it to ALGO node
+         System.out.println("just added instruct");
+        // Check for 'end' token
         token = getCurrentToken();
+        System.out.println(" THE OBVIOUS CURRENT" +getCurrentToken().getWord());
+        if (token != null && "end".equals(token.getWord())) {
+
+            algoNode.addChild(new Node("end"));  // Add 'end' to ALGO node
+            System.out.println("BEFORE Consumption: " + token.getWord());
+           System.out.println("size of tokkens" + tok.size() + "current index"  + currIndex);
+          
+           System.out.println(currIndex + 1);
+           if(tok.size() == currIndex + 1){
+             System.out.println("end of tokens");
+            //  consumeToken();
+
+           }
+           else{
+            consumeToken();
+           }
         
-        if (token != null) {
-            switch (token.getWord()) {
-                case "end":     // Check if token is 'end'
-                    algoNode.addChild(new Node("end"));
-                    System.out.println("BEFORE Consumption:" + getCurrentToken().getWord());
-                    consumeToken();
-                    System.out.println("here inside instruct end and has been consumed  next symbol:" + getCurrentToken().getWord());
-                    break;
-                default:
-                    throw new Exception("Expected 'end' but found: " + token.getWord());
-            }
+              // Move to the next token
+            System.out.println("Consumed 'end', next symbol: " + getCurrentToken().getWord());
         } else {
-            throw new Exception("Expected 'end' but found: null");
+            throw new Exception("Expected 'end' but found: " + (token != null ? token.getWord() : "null"));
         }
-        
+    
+        System.out.println("exiting algo");
         return algoNode;
     }
+    
 
     private Node parseINSTRUC() throws Exception {      // Parse INSTRUC -> ε, INSTRUC -> COMMAND ; INSTRUC
         Node instrucNode = new Node("INSTRUC");
@@ -331,10 +346,12 @@ class Parser extends JFrame {
         if (currentToken != null) {
             switch (currentToken.getWord()) {
                 case "end":
+                System.out.println("I think i am here ");
                     // Do nothing, return empty INSTRUC node, INSTRUC -> ε
                     
                     break;
                 default:
+                System.out.println("I think i am here ");
                     instrucNode.addChild(parseCOMMAND());
                     currentToken = getCurrentToken();
                     if (currentToken != null && currentToken.getTokenClass().equals("semicolon")) {
@@ -749,19 +766,27 @@ private Node parseBINOP() throws Exception {
     }
     private Node parseFUNCTIONS() throws Exception {        // Parse FUNCTIONS -> ε, FUNCTIONS -> DECL FUNCTIONS
         Node functionsNode = new Node("FUNCTIONS");
+        System.out.println("entered function ");
         Token token = getCurrentToken();
-        
+        System.out.println("last token:" + getCurrentToken().getWord());
+       if(getCurrentToken().getWord().equals( "end")){
+    System.out.println("about to consume token");
+             consumeToken();
+       }
+      else{
         while (token != null) {
+            System.out.println("in the while loop");
             switch (token.getTokenClass()) {
                 case "reserved_keyword":        // FUNCTIONS -> DECL FUNCTIONS
                     functionsNode.addChild(parseDECL());
                     break;
                 default:        // FUNCTIONS -> ε
+                System.out.println("funtions is null");
                     return functionsNode;
             }
             token = getCurrentToken();
         }
-        
+    }
         return functionsNode;
     }
 

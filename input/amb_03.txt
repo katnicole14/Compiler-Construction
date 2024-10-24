@@ -1,15 +1,7 @@
 main
 
 begin
-if eq(4 , 3 )
-then 
-begin
- 
-end
-
-else 
-begin
-if sqrt(eq(V_res, 4 ))
+if sub(1 , 5 )
 then 
 begin
  
@@ -19,7 +11,5 @@ else
 begin
  
 end
-;  
-end
-;  
+ 
 end
